@@ -970,18 +970,20 @@ def start_bookstore_agent(state: BookstoreState):
     
     input = state.get(input)
     print('input: ', input)
+    
+    return {"input": input}
     # return AgentAction(tool=get_book_list, tool_input=state["input"])
     
 def build_bookstore_agent():
     workflow = StateGraph(BookstoreState)
 
-    #workflow.add_node("entry", start_bookstore_agent)
+    workflow.add_node("entry", start_bookstore_agent)
     workflow.add_node("agent", run_agent)
     workflow.add_node("action", execute_tools)
 
-    # workflow.set_entry_point("entry")
-    workflow.set_entry_point("agent")
-    # workflow.add_edge("entry", "agent")
+    workflow.set_entry_point("entry")
+    #workflow.set_entry_point("agent")
+    workflow.add_edge("entry", "agent")
     workflow.add_conditional_edges(
         "agent",
         should_continue,
