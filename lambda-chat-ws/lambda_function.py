@@ -975,7 +975,7 @@ def start_bookstore_agent(state: BookstoreState):
 def build_bookstore_agent():
     workflow = StateGraph(BookstoreState)
 
-    workflow.add_node("entry", start_bookstore_agent)
+    #workflow.add_node("entry", start_bookstore_agent)
     workflow.add_node("agent", run_agent)
     workflow.add_node("action", execute_tools)
 
