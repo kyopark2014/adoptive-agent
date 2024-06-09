@@ -968,8 +968,9 @@ def start_bookstore_agent(state: BookstoreState):
     if not passenger_id:
         raise ValueError("No passenger ID configured.")
     
-    state.get(input)
-    return AgentAction(tool=get_book_list, tool_input=state["input"])
+    input = state.get(input)
+    print('input: ', input)
+    # return AgentAction(tool=get_book_list, tool_input=state["input"])
     
 def build_bookstore_agent():
     workflow = StateGraph(BookstoreState)
@@ -997,13 +998,14 @@ def run_bookstore_bot(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
     
     inputs = {"input": query}    
-    # config = {"recursion_limit": 50}
+
     thread_id = str(uuid.uuid4())
     config = {
         "configurable": {
             "passenger_id": "3442 587242",
             "thread_id": thread_id,
-        }
+        },
+        "recursion_limit": 50
     }
     for output in app.stream(inputs, config=config):
         for key, value in output.items():
