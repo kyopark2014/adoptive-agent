@@ -960,6 +960,7 @@ class BookstoreState(TypedDict):
 
 def start_bookstore_agent(state: BookstoreState):
     print('say hello')
+    print('state: ', state)
         
     config = ensure_config()  
     configuration = config.get("configurable", {})
@@ -968,8 +969,9 @@ def start_bookstore_agent(state: BookstoreState):
     if not passenger_id:
         raise ValueError("No passenger ID configured.")
     
-    input = state.get(input)
-    print('input: ', input)
+    #input = state.get(input)
+    #print('input: ', input)
+    print('input: ', state.get(input))
     
     return {"input": input}
     # return AgentAction(tool=get_book_list, tool_input=state["input"])
