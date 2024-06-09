@@ -959,7 +959,6 @@ class BookstoreState(TypedDict):
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
 
 def start_bookstore_agent(state: BookstoreState):
-    print('say hello')
     print('state: ', state)
         
     config = ensure_config()  
@@ -971,9 +970,9 @@ def start_bookstore_agent(state: BookstoreState):
     
     #input = state.get(input)
     #print('input: ', input)
-    print('input: ', state.get(input))
+    print('input: ', state['input'])
     
-    return {"input": input}
+    return state
     # return AgentAction(tool=get_book_list, tool_input=state["input"])
     
 def build_bookstore_agent():
