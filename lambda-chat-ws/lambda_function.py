@@ -942,6 +942,71 @@ def run_langgraph_agent(connectionId, requestId, chat, query):
                                         
     return msg
 
+####################### Bookstore bot #######################
+class BookstoreState(TypedDict):
+    input: str
+    books: list[str]
+    chat_history: list[BaseMessage]
+    agent_outcome: Union[AgentAction, AgentFinish, None]
+    intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
+
+tool_executor = ToolExecutor(tools)
+
+def start_bookstore_agent(state: BookstoreState):
+    print('say hello')
+
+storeflow = StateGraph(BookstoreState)
+
+storeflow.add_node("agent", run_agent)
+storeflow.add_node("action", execute_tools)
+
+storeflow.set_entry_point("agent")
+storeflow.add_conditional_edges(
+    "agent",
+    should_continue,
+    {
+        "continue": "action",
+        "end": END,
+    },
+)
+storeflow.add_edge("action", "agent")
+app = storeflow.compile()
+
+import uuid
+
+def run_bookstore_bot(connectionId, requestId, chat, query):
+    isTyping(connectionId, requestId)
+    
+    inputs = {"input": query}    
+    # config = {"recursion_limit": 50}
+    thread_id = str(uuid.uuid4())
+    config = {
+        "configurable": {
+            "passenger_id": "3442 587242",
+            "thread_id": thread_id,
+        }
+    }
+    for output in app.stream(inputs, config=config):
+        for key, value in output.items():
+            print("---")
+            print(f"Node '{key}': {value}")
+            
+            if 'agent_outcome' in value and isinstance(value['agent_outcome'], AgentFinish):
+                response = value['agent_outcome'].return_values
+                msg = readStreamMsg(connectionId, requestId, response['output'])
+
+    config = {
+        "configurable": {
+            # The passenger_id is used in our flight tools to
+            # fetch the user's flight information
+            "passenger_id": "3442 587242",
+            # Checkpoints are accessed by thread_id
+            "thread_id": thread_id,
+        }
+    }
+                                        
+    return msg
+
 def traslation(chat, text, input_language, output_language):
     system = (
         "You are a helpful assistant that translates {input_language} to {output_language} in <article> tags. Put it in <result> tags."
@@ -1430,6 +1495,8 @@ def getResponse(connectionId, jsonBody):
                     msg = general_conversation(connectionId, requestId, chat, text)                  
                 elif convType == 'langgraph-agent':
                     msg = run_langgraph_agent(connectionId, requestId, chat, text)      
+                elif convType == '"bookstore-bot':
+                    msg = run_bookstore_bot(connectionId, requestId, chat, text)
                 #elif convType == 'langgraph-agent-chat':
                 #    msg = run_langgraph_agent_chat_using_revised_question(connectionId, requestId, chat, text)
                 else:
