@@ -968,11 +968,10 @@ def start_bookstore_agent(state: BookstoreState):
     if not passenger_id:
         raise ValueError("No passenger ID configured.")
     
-    #input = state.get(input)
-    #print('input: ', input)
-    print('input: ', state['input'])
+    input = state['input']
+    print('input: ', input)
     
-    return state
+    return {"input": input}
     # return AgentAction(tool=get_book_list, tool_input=state["input"])
     
 def build_bookstore_agent():
