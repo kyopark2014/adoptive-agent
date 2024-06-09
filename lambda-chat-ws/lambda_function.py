@@ -9,6 +9,8 @@ import re
 import traceback
 import requests
 import base64
+import operator
+import uuid
 
 from botocore.config import Config
 from botocore.exceptions import ClientError
@@ -33,6 +35,13 @@ from pytz import timezone
 from langchain_community.tools.tavily_search import TavilySearchResults
 from PIL import Image
 from opensearchpy import OpenSearch
+
+from typing import TypedDict, Annotated, List, Union
+from langchain_core.agents import AgentAction, AgentFinish
+from langchain_core.messages import BaseMessage
+from langgraph.prebuilt.tool_executor import ToolExecutor
+from langgraph.graph import END, StateGraph
+from langchain_core.runnables import ensure_config
 
 s3 = boto3.client('s3')
 s3_bucket = os.environ.get('s3_bucket') # bucket name
@@ -863,19 +872,11 @@ Thought:{agent_scratchpad}
 """)
     
 ####################### LangGraph #######################
-import operator
-from typing import TypedDict, Annotated, List, Union
-from langchain_core.agents import AgentAction, AgentFinish
-from langchain_core.messages import BaseMessage
-from langgraph.prebuilt.tool_executor import ToolExecutor
-
 class AgentState(TypedDict):
     input: str
     chat_history: list[BaseMessage]
     agent_outcome: Union[AgentAction, AgentFinish, None]
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
-
-tool_executor = ToolExecutor(tools)
 
 chat = get_chat() 
 mode  = 'kor'
@@ -899,6 +900,11 @@ def execute_tools(data):
             "thread_id": "1234",
         }
     }
+    
+    tools = [get_current_time, get_book_list, get_weather_info, search_by_tavily, search_by_opensearch]
+    
+    tool_executor = ToolExecutor(tools)
+
     output = tool_executor.invoke(agent_action, config)
     return {"intermediate_steps": [(agent_action, str(output))]}
 
@@ -908,10 +914,7 @@ def should_continue(data):
     else:
         return "continue"
 
-from langgraph.graph import END, StateGraph
-def run_langgraph_agent(connectionId, requestId, chat, query):
-    isTyping(connectionId, requestId)
-    
+def build_agent():
     workflow = StateGraph(AgentState)
 
     workflow.add_node("agent", run_agent)
@@ -927,8 +930,13 @@ def run_langgraph_agent(connectionId, requestId, chat, query):
         },
     )
     workflow.add_edge("action", "agent")
-    app = workflow.compile()
+    return workflow.compile()
+
+app = build_agent()
     
+def run_langgraph_agent(connectionId, requestId, app, query):
+    isTyping(connectionId, requestId)
+        
     inputs = {"input": query}    
     config = {"recursion_limit": 50}
     for output in app.stream(inputs, config=config):
@@ -950,31 +958,41 @@ class BookstoreState(TypedDict):
     agent_outcome: Union[AgentAction, AgentFinish, None]
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
 
-tool_executor = ToolExecutor(tools)
-
 def start_bookstore_agent(state: BookstoreState):
     print('say hello')
+        
+    config = ensure_config()  
+    configuration = config.get("configurable", {})
+    passenger_id = configuration.get("passenger_id", None)
+    print('passenger_id: ', passenger_id)
+    if not passenger_id:
+        raise ValueError("No passenger ID configured.")
+    
+    return AgentAction(tool=get_book_list, tool_input=state["input"])
+    
+def build_agent():
+    workflow = StateGraph(BookstoreState)
 
-storeflow = StateGraph(BookstoreState)
+    workflow.add_node("entry", start_bookstore_agent)
+    workflow.add_node("agent", run_agent)
+    workflow.add_node("action", execute_tools)
 
-storeflow.add_node("agent", run_agent)
-storeflow.add_node("action", execute_tools)
+    workflow.set_entry_point("entry")
+    workflow.add_edge("entry", "agent")
+    workflow.add_conditional_edges(
+        "agent",
+        should_continue,
+        {
+            "continue": "action",
+            "end": END,
+        },
+    )
+    workflow.add_edge("action", "agent")
+    return workflow.compile()
 
-storeflow.set_entry_point("agent")
-storeflow.add_conditional_edges(
-    "agent",
-    should_continue,
-    {
-        "continue": "action",
-        "end": END,
-    },
-)
-storeflow.add_edge("action", "agent")
-app = storeflow.compile()
+bookstore_app = build_agent()
 
-import uuid
-
-def run_bookstore_bot(connectionId, requestId, chat, query):
+def run_bookstore_bot(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
     
     inputs = {"input": query}    
@@ -1003,8 +1021,7 @@ def run_bookstore_bot(connectionId, requestId, chat, query):
             # Checkpoints are accessed by thread_id
             "thread_id": thread_id,
         }
-    }
-                                        
+    }                                        
     return msg
 
 def traslation(chat, text, input_language, output_language):
@@ -1494,9 +1511,9 @@ def getResponse(connectionId, jsonBody):
                 if convType == 'normal':      # normal
                     msg = general_conversation(connectionId, requestId, chat, text)                  
                 elif convType == 'langgraph-agent':
-                    msg = run_langgraph_agent(connectionId, requestId, chat, text)      
+                    msg = run_langgraph_agent(connectionId, requestId, app, text)      
                 elif convType == '"bookstore-bot':
-                    msg = run_bookstore_bot(connectionId, requestId, chat, text)
+                    msg = run_bookstore_bot(connectionId, requestId, bookstore_app, text)
                 #elif convType == 'langgraph-agent-chat':
                 #    msg = run_langgraph_agent_chat_using_revised_question(connectionId, requestId, chat, text)
                 else:
