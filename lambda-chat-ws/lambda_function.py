@@ -968,9 +968,10 @@ def start_bookstore_agent(state: BookstoreState):
     if not passenger_id:
         raise ValueError("No passenger ID configured.")
     
+    state.get(input)
     return AgentAction(tool=get_book_list, tool_input=state["input"])
     
-def build_agent():
+def build_bookstore_agent():
     workflow = StateGraph(BookstoreState)
 
     workflow.add_node("entry", start_bookstore_agent)
@@ -990,7 +991,7 @@ def build_agent():
     workflow.add_edge("action", "agent")
     return workflow.compile()
 
-bookstore_app = build_agent()
+bookstore_app = build_bookstore_agent()
 
 def run_bookstore_bot(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
