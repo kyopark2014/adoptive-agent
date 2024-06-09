@@ -1516,7 +1516,7 @@ def getResponse(connectionId, jsonBody):
                     msg = general_conversation(connectionId, requestId, chat, text)                  
                 elif convType == 'langgraph-agent':
                     msg = run_langgraph_agent(connectionId, requestId, app, text)      
-                elif convType == '"bookstore-bot':
+                elif convType == 'bookstore-bot':
                     msg = run_bookstore_bot(connectionId, requestId, bookstore_app, text)
                 #elif convType == 'langgraph-agent-chat':
                 #    msg = run_langgraph_agent_chat_using_revised_question(connectionId, requestId, chat, text)
