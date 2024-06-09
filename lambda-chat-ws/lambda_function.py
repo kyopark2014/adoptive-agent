@@ -981,7 +981,7 @@ def build_bookstore_agent():
 
     # workflow.set_entry_point("entry")
     workflow.set_entry_point("agent")
-    workflow.add_edge("entry", "agent")
+    # workflow.add_edge("entry", "agent")
     workflow.add_conditional_edges(
         "agent",
         should_continue,
