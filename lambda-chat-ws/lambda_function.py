@@ -1058,11 +1058,13 @@ prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)]
 chain = prompt | chat    
 
 query = "2019년의 대한민국 서울에서 가장 핫한 연예 소식은?"
-output = chain.invoke({"input": query})
+result = chain.invoke({"input": query})
+print('result: ', result)
+output = result.content
 print('output: ', output)
 
-result = output[output.find('<result>')+8:len(output)-9]
-print('result: ', result)
+steps = output[output.find('<result>')+8:len(output)-9]
+print('steps: ', steps)
 
 
 
