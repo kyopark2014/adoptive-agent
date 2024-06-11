@@ -995,7 +995,7 @@ def build_bookstore_agent():
     workflow.add_edge("action", "agent")
     return workflow.compile()
 
-bookstore_app = build_bookstore_agent()
+app_bookstore = build_bookstore_agent()
 
 def run_bookstore_bot(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
@@ -1169,12 +1169,12 @@ def buildAgent():
     )
     return workflow.compile()    
 
-app = buildAgent()
+app_plan = buildAgent()
     
 def run_plan_and_execute(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
     
-    inputs = {"input": query}    
+    inputs = {"input": query}
     
     thread_id = str(uuid.uuid4())
     config = {
@@ -1684,11 +1684,11 @@ def getResponse(connectionId, jsonBody):
                 elif convType == 'langgraph-agent':
                     msg = run_langgraph_agent(connectionId, requestId, app, text)      
                 elif convType == 'bookstore-bot':
-                    msg = run_bookstore_bot(connectionId, requestId, bookstore_app, text)
+                    msg = run_bookstore_bot(connectionId, requestId, app_bookstore, text)
                 #elif convType == 'langgraph-agent-chat':
                 #    msg = run_langgraph_agent_chat_using_revised_question(connectionId, requestId, chat, text)
                 elif convType == 'plan-and-execute':
-                    msg = run_plan_and_execute(connectionId, requestId, chat, text)
+                    msg = run_plan_and_execute(connectionId, requestId, app_plan, text)
                 else:
                     msg = general_conversation(connectionId, requestId, chat, text)  
                     
