@@ -1048,13 +1048,13 @@ def create_plan(chat, text):
 
     chain = prompt | chat    
     result = chain.invoke({
-        "input": query
+        "input": text
     })
     output = result.content
     
     return output[output.find('<result>')+8:len(output)-9]
 
-query = "2019년의 대한민국 서울에서 가장 핫한 연예 소식은?"
+query = "컴퓨터로 라면을 끓이는 방법은?"
 
 plans = create_plan(chat, query)
 print('plans: ', plans)
