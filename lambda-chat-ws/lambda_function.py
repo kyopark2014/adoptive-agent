@@ -1035,8 +1035,7 @@ def get_planner_prompt_template():
     # Get the react prompt template
     if mode=='eng':
         return PromptTemplate.from_template(
-"""For the given objective, come up with a simple step by step plan. \
-This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+"""For the given objective, come up with a simple step by step plan. This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. 
 The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
 
 You have access to the following tools:
@@ -1071,8 +1070,7 @@ Thought:{agent_scratchpad}
     else: 
 
         return PromptTemplate.from_template(
-"""For the given objective, come up with a simple step by step plan. \
-This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+"""For the given objective, come up with a simple step by step plan. This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. 
 The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
 
 사용할 수 있는 tools은 아래와 같습니다:
