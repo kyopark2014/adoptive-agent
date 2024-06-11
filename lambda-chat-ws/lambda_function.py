@@ -1042,29 +1042,27 @@ class Plan(BaseModel):
 
 from langchain_core.prompts import ChatPromptTemplate
 
-planner_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """For the given objective, come up with a simple step by step plan. \
-This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
-The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.""",
-        ),
-        ("placeholder", "{messages}"),
-    ]
-)
+system = (
+"""주어진 목표에 대해 간단한 단계별 계획을 세웁니다. 이 계획에는 개별 작업이 포함되어 있으며, 이를 올바르게 실행하면 정확한 답을 얻을 수 있습니다. \
+불필요한 단계는 추가하지 마십시오. 마지막 단계의 결과가 최종 답이 되어야 합니다. 각 단계에 필요한 모든 정보가 포함되어 있는지 확인하고 단계를 건너뛰지 마십시오. \
+결과의 간 단계는 <example>과 같이 순서대로 list로 정리하세요. 또한, 결과는 <result> tag를 붙여주세요. \
+<example>
+["주요 언론사의 뉴스를 수집합니다.", "수집한 뉴스 기사들을 주제별로 분류합니다.", "각 주제별로 가장 많이 보도되고 화제가 된 뉴스를 선별합니다.", "최종적으로 선정된 소식을 정리합니다."]
+</example>
+""")
 
-planner = planner_prompt | chat
+human = "{input}"
 
-output = planner.invoke(
-    {
-        "messages": [
-            ("user", "2019년의 대한민국 서울에서 가장 핫한 연예 소식은?")
-        ]
-    }
-)
+prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
 
+chain = prompt | chat    
+
+query = "2019년의 대한민국 서울에서 가장 핫한 연예 소식은?"
+output = chain.invoke({"input": query})
 print('output: ', output)
+
+result = output[output.find('<result>')+8:len(output)-9]
+print('result: ', result)
 
 
 
