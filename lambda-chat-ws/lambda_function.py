@@ -1071,19 +1071,22 @@ class PlanExecute(TypedDict):
 def plan_step(state: PlanExecute):
     print('state: ', state)
     
-    plans = create_plan(chat, state['input'])
-    print('plans: ', plans)
+    plan = create_plan(chat, state['input'])
+    print('plan: ', plan)
     
-    return {"plan": plans}
+    return {"plan": plan}
 
 prompt_template = get_react_prompt_template(agentLangMode)
 agent_executor = create_react_agent(chat, tools, prompt_template)
 
 def execute_step(state: PlanExecute):
+    print('state: ', state)
+    
     plan = state["plan"]
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
     task = plan[0]
-    task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."
+    task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."    
+    print('task_formatted: ', task_formatted)
     
     agent_response = agent_executor.invoke(
         {"input": task_formatted}
