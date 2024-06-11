@@ -1071,10 +1071,10 @@ class PlanExecute(TypedDict):
     response: str
 
 
-def plan_step(data):
-    print('data: ', data)
+def plan_step(state: PlanExecute):
+    print('state: ', state)
     
-    plans = create_plan(chat, data['input'])
+    plans = create_plan(chat, state['input'])
     print('plans: ', plans)
     
     return {"plan": plans}
@@ -1177,8 +1177,9 @@ app = buildAgent()
 def run_plan_and_execute(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
     
-    inputs = {"input": query}    
-
+    state: PlanExecute
+    state[input] = query
+    
     thread_id = str(uuid.uuid4())
     config = {
         "configurable": {
@@ -1187,7 +1188,7 @@ def run_plan_and_execute(connectionId, requestId, app, query):
         },
         "recursion_limit": 50
     }
-    for output in app.stream(inputs, config=config):
+    for output in app.stream(state, config=config):
         for key, value in output.items():
             print("---")
             print(f"Node '{key}': {value}")
