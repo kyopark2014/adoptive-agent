@@ -1054,7 +1054,7 @@ def create_plan(chat, text):
     
     return output[output.find('<result>')+8:len(output)-9]
 
-query = "컴퓨터로 라면을 끓이는 방법은?"
+query = "컴퓨터로 라면을 끓이는 방법을 상상해서 찾아보려면 어떻게?"
 
 plans = create_plan(chat, query)
 print('plans: ', plans)
