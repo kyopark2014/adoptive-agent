@@ -1059,7 +1059,7 @@ planner = planner_prompt | chat
 output = planner.invoke(
     {
         "messages": [
-            ("user", "what is the hometown of the current Australia open winner?")
+            ("user", "2019년의 대한민국 서울에서 가장 핫한 연예 소식은?")
         ]
     }
 )
