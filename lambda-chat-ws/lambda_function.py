@@ -1031,7 +1031,7 @@ def run_bookstore_bot(connectionId, requestId, app, query):
     return msg
 
 ####################### plan-and-execute agent #######################
-def get_planner_prompt_template():
+def get_planner_prompt_template(mode: str):
     # Get the react prompt template
     if mode=='eng':
         return PromptTemplate.from_template(
