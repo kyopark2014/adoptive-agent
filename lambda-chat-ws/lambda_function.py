@@ -1178,7 +1178,7 @@ def run_plan_and_execute(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
     
     state: PlanExecute
-    state[input] = query
+    state['input'] = query
     
     thread_id = str(uuid.uuid4())
     config = {
