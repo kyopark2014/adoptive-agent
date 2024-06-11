@@ -831,7 +831,10 @@ Final Answer: [your response here]
 
 Begin!
 
-Question: {input}
+Previous conversation history:
+{chat_history}
+
+New input: {input}
 Thought:{agent_scratchpad}
 """)
     else: 
@@ -861,7 +864,10 @@ Final Answer: [your response here]
 
 Begin!
 
-Question: {input}
+Previous conversation history:
+{chat_history}
+
+New input: {input}
 Thought:{agent_scratchpad}
 """)
     
@@ -1055,10 +1061,7 @@ Final Answer: [your response here]
 
 Begin!
 
-Previous conversation history:
-{chat_history}
-
-New input: {input}
+Question: {input}
 Thought:{agent_scratchpad}
 """)
     else: 
@@ -1090,10 +1093,7 @@ Final Answer: [your response here]
 
 Begin!
 
-Previous conversation history:
-{chat_history}
-
-New input: {input}
+Question: {input}
 Thought:{agent_scratchpad}
 """)
 
