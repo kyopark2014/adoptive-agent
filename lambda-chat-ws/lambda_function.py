@@ -36,7 +36,7 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from PIL import Image
 from opensearchpy import OpenSearch
 
-from typing import TypedDict, Annotated, List, Union
+from typing import List, Tuple, Annotated, TypedDict, Literal, Union
 from langchain_core.agents import AgentAction, AgentFinish
 from langchain_core.messages import BaseMessage
 from langgraph.prebuilt.tool_executor import ToolExecutor
@@ -1062,26 +1062,7 @@ def create_plan(chat, text):
     return output[output.find('<result>')+8:len(output)-9]
 
 
-replanner_prompt = ChatPromptTemplate.from_template(
-    """For the given objective, come up with a simple step by step plan. \
-This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
-The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
 
-Your objective was this:
-{input}
-
-Your original plan was this:
-{plan}
-
-You have currently done the follow steps:
-{past_steps}
-
-Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan."""
-)
-
-replanner = replanner_prompt | chat
-
-from typing import List, Tuple, Annotated, TypedDict, Literal
 class PlanExecute(TypedDict):
     input: str
     plan: list[str]
@@ -1098,10 +1079,32 @@ def plan_step(state: PlanExecute):
     
     return {"plan": plans}
 
-
-# agent_executor = create_react_agent(chat, tools, replanner_prompt)
+prompt_template = get_react_prompt_template(agentLangMode)
+agent_executor = create_react_agent(chat, tools, prompt_template)
 
 def execute_step(state: PlanExecute):
+    plan = state["plan"]
+    plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
+    task = plan[0]
+    task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."
+    
+    agent_response = agent_executor.invoke(
+        {"input": task_formatted}
+    )
+    print('agent_response: ', agent_response)
+    output = agent_response.content
+    
+    return {
+        "past_steps": (task, output),
+    }
+
+from langchain_core.pydantic_v1 import BaseModel
+class Response(BaseModel):
+    """Response to user."""
+
+    response: str
+            
+def replan_step(state: PlanExecute):
     plan = state["plan"]
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
     print('plan_str: ', plan_str)
@@ -1139,9 +1142,10 @@ Update your plan accordingly. If no more steps are needed and you can return to 
     output = result.content
     print('output: ', output)
     
-    return {
-        "past_steps": (task, output)
-    }
+    if isinstance(output.action, Response):
+        return {"response": output.action.response}
+    else:
+        return {"plan": output.action.steps}
 
 def should_end(state: PlanExecute) -> Literal["agent", "__end__"]:
     if "response" in state and state["response"]:
