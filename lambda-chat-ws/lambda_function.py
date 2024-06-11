@@ -157,7 +157,7 @@ def get_chat():
         model_id=modelId,
         client=boto3_bedrock, 
         model_kwargs=parameters,
-    )    
+    )
     
     selected_chat = selected_chat + 1
     if selected_chat == len(LLM_for_chat):
@@ -1031,87 +1031,83 @@ def run_bookstore_bot(connectionId, requestId, app, query):
     return msg
 
 ####################### plan-and-execute agent #######################
-def get_planner_prompt_template(mode: str):
-    # Get the react prompt template
-    if mode=='eng':
-        return PromptTemplate.from_template(
-"""For the given objective, come up with a simple step by step plan. This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. 
-The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
+from langchain_core.pydantic_v1 import BaseModel, Field
 
-You have access to the following tools:
+class Plan(BaseModel):
+    """Plan to follow in future"""
 
-{tools}
+    steps: List[str] = Field(
+        description="different steps to follow, should be in sorted order"
+    )
 
-Use the following format:
+from langchain_core.prompts import ChatPromptTemplate
 
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should use only the tool name from [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat 5 times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
-
-When you have a response to say to the Human, or if you do not need to use a tool, you MUST use the format:
-'''
-Thought: Do I need to use a tool? No
-Final Answer: [your response here]
-'''
-
-Begin!
-
-Question: {input}
-Thought:{agent_scratchpad}
-""")
-    else: 
-
-        return PromptTemplate.from_template(
-"""For the given objective, come up with a simple step by step plan. This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. 
-The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
-
-사용할 수 있는 tools은 아래와 같습니다:
-
-{tools}
-
-다음의 format을 사용하세요.:
-
-Question: 답변하여야 할 input question 
-Thought: you should always think about what to do. 
-Action: 해야 할 action로서 [{tool_names}]에서 tool의 name만을 가져옵니다. 
-Action Input: action의 input
-Observation: action의 result
-... (Thought/Action/Action Input/Observation을 5번 반복 할 수 있습니다.)
-Thought: 나는 이제 Final Answer를 알고 있습니다. 
-Final Answer: original input에 대한 Final Answer
-
-너는 Human에게 해줄 응답이 있거나, Tool을 사용하지 않아도 되는 경우에, 다음 format을 사용하세요.:
-'''
-Thought: Tool을 사용해야 하나요? No
-Final Answer: [your response here]
-'''
-
-Begin!
-
-Question: {input}
-Thought:{agent_scratchpad}
-""")
-
-prompt_planner_template = get_planner_prompt_template(agentLangMode)
-print('prompt_planner_template: ', prompt_planner_template)
-
-tools = [search_by_tavily]       
-agent_planner = create_react_agent(chat, tools, prompt_planner_template)
-
-agent_planner_executor = AgentExecutor(agent=agent_planner, tools=tools, verbose=True, handle_parsing_errors=True)
-
-# run agent
-query = "what is the hometown of the current Australia open winner?"
-response = agent_planner_executor.invoke({
-    "input": query
-})
-print('response: ', response)
+def get_chat(Plan):
+    global selected_chat
     
+    profile = LLM_for_chat[selected_chat]
+    bedrock_region =  profile['bedrock_region']
+    modelId = profile['model_id']
+    print(f'selected_chat: {selected_chat}, bedrock_region: {bedrock_region}, modelId: {modelId}')
+    maxOutputTokens = int(profile['maxOutputTokens'])
+                          
+    # bedrock   
+    boto3_bedrock = boto3.client(
+        service_name='bedrock-runtime',
+        region_name=bedrock_region,
+        config=Config(
+            retries = {
+                'max_attempts': 30
+            }
+        )
+    )
+    parameters = {
+        "max_tokens":maxOutputTokens,     
+        "temperature":0.1,
+        "top_k":250,
+        "top_p":0.9,
+        "stop_sequences": [HUMAN_PROMPT]
+    }
+    # print('parameters: ', parameters)
+
+    chat = ChatBedrock(   # new chat model
+        model_id=modelId,
+        client=boto3_bedrock, 
+        model_kwargs=parameters,
+    ).with_structured_output(Plan)
+    
+    selected_chat = selected_chat + 1
+    if selected_chat == len(LLM_for_chat):
+        selected_chat = 0
+    
+    return chat
+
+planner_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """For the given objective, come up with a simple step by step plan. \
+This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.""",
+        ),
+        ("placeholder", "{messages}"),
+    ]
+)
+
+planner = planner_prompt | get_chat(Plan)
+
+output = planner.invoke(
+    {
+        "messages": [
+            ("user", "what is the hometown of the current Australia open winner?")
+        ]
+    }
+)
+
+print('output: ', output)
+
+
+
 class PlanExecute(TypedDict):
     input: str
     plan: list[str]
