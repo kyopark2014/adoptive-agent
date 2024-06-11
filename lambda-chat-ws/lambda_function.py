@@ -1071,10 +1071,10 @@ class PlanExecute(TypedDict):
     response: str
 
 
-def plan_step(state: PlanExecute):
-    print('state: ', state)
+def plan_step(data):
+    print('data: ', data)
     
-    plans = create_plan(chat, state['input'])
+    plans = create_plan(chat, data['input'])
     print('plans: ', plans)
     
     return {"plan": plans}
@@ -1139,6 +1139,7 @@ Update your plan accordingly. If no more steps are needed and you can return to 
         "plan": plan_str,
         "past_steps": state["past_steps"]
     })
+    print('result: ', result)
     output = result.content
     print('output: ', output)
     
