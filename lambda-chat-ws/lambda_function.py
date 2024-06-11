@@ -1032,6 +1032,13 @@ def run_bookstore_bot(connectionId, requestId, app, query):
 
 ####################### plan-and-execute agent #######################
 
+
+
+query = "작년에 프로야구 우승팀이 누구지?"
+
+from typing import Union
+
+
 # Planning Step
 def create_plan(chat, text):
     system = (
@@ -1054,18 +1061,112 @@ def create_plan(chat, text):
     
     return output[output.find('<result>')+8:len(output)-9]
 
-query = "작년에 프로야구 우승팀이 누구지?"
 
-plans = create_plan(chat, query)
-print('plans: ', plans)
+replanner_prompt = ChatPromptTemplate.from_template(
+    """For the given objective, come up with a simple step by step plan. \
+This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
 
+Your objective was this:
+{input}
+
+Your original plan was this:
+{plan}
+
+You have currently done the follow steps:
+{past_steps}
+
+Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan."""
+)
+
+replanner = replanner_prompt | chat
+
+from typing import List, Tuple, Annotated, TypedDict, Literal
 class PlanExecute(TypedDict):
     input: str
     plan: list[str]
-    chat_history: list[BaseMessage]
-    agent_outcome: Union[AgentAction, AgentFinish, None]
-    intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
+    #agent_outcome: Union[AgentAction, AgentFinish, None]
+    past_steps: Annotated[List[Tuple], operator.add]
+    response: str
 
+
+def plan_step(state: PlanExecute):
+    print('state: ', state)
+    
+    plans = create_plan(chat, state['input'])
+    print('plans: ', plans)
+    
+    return {"plan": plans}
+
+
+agent_executor = create_react_agent(chat, tools, replanner_prompt)
+
+def execute_step(state: PlanExecute):
+    plan = state["plan"]
+    plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
+    print('plan_str: ', plan_str)
+    
+    task = plan[0]
+    task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."
+    
+    system = (
+"""For the given objective, come up with a simple step by step plan. \
+This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
+
+Your objective was this:
+{input}
+
+Your original plan was this:
+{plan}
+
+You have currently done the follow steps:
+{past_steps}
+
+Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan."""
+)
+
+    human = "{input}"
+
+    prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
+
+    chain = prompt | chat    
+    result = chain.invoke({
+        "input": task_formatted,
+        "plan": plan_str,
+        "past_steps": state["past_steps"]
+    })
+    output = result.content
+    print('output: ', output)
+    
+    return {
+        "past_steps": (task, output)
+    }
+
+def should_end(state: PlanExecute) -> Literal["agent", "__end__"]:
+    if "response" in state and state["response"]:
+        return "__end__"
+    else:
+        return "agent"
+    
+def buildAgent():
+    workflow = StateGraph(PlanExecute)
+    
+    workflow.add_node("planner", plan_step)
+    workflow.add_node("agent", execute_step)
+    workflow.set_entry_point("planner")
+    
+    workflow.add_edge("planner", "agent")
+    workflow.add_edge("agent", "replan")
+
+    workflow.add_conditional_edges(
+        "replan",
+        should_end,
+    )
+    return workflow.compile()    
+
+app = buildAgent()
+    
 def run_plan_and_execute(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
     
@@ -1088,15 +1189,6 @@ def run_plan_and_execute(connectionId, requestId, app, query):
                 response = value['agent_outcome'].return_values
                 msg = readStreamMsg(connectionId, requestId, response['output'])
 
-    config = {
-        "configurable": {
-            # The passenger_id is used in our flight tools to
-            # fetch the user's flight information
-            "passenger_id": "3442 587242",
-            # Checkpoints are accessed by thread_id
-            "thread_id": thread_id,
-        }
-    }                                        
     return msg
 
 def traslation(chat, text, input_language, output_language):
