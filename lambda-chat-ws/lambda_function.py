@@ -1154,6 +1154,8 @@ def buildAgent():
     
     workflow.add_node("planner", plan_step)
     workflow.add_node("agent", execute_step)
+    workflow.add_node("replan", replan_step)
+    
     workflow.set_entry_point("planner")
     
     workflow.add_edge("planner", "agent")
