@@ -1031,9 +1031,6 @@ def run_bookstore_bot(connectionId, requestId, app, query):
     return msg
 
 ####################### plan-and-execute agent #######################
-
-
-
 query = "작년에 프로야구 우승팀이 누구지?"
 
 from typing import Union
@@ -1177,8 +1174,7 @@ app = buildAgent()
 def run_plan_and_execute(connectionId, requestId, app, query):
     isTyping(connectionId, requestId)
     
-    state: PlanExecute
-    state['input'] = query
+    inputs = {"input": query}    
     
     thread_id = str(uuid.uuid4())
     config = {
@@ -1188,7 +1184,7 @@ def run_plan_and_execute(connectionId, requestId, app, query):
         },
         "recursion_limit": 50
     }
-    for output in app.stream(state, config=config):
+    for output in app.stream(inputs, config=config):
         for key, value in output.items():
             print("---")
             print(f"Node '{key}': {value}")
