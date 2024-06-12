@@ -1112,11 +1112,7 @@ class Response(BaseModel):
 def replan_step(state: PlanExecute):
     print('state: ', state)
     
-    output = state["plan"]
-    result = output[output.find('<result>')+8:len(output)-9].replace("\n","")
-    plan = json.loads(result)
-    print('plan: ', plan)
-    
+    plan = state["plan"]    
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
     print('plan_str: ', plan_str)
     
@@ -1159,7 +1155,11 @@ Update your plan accordingly. If no more steps are needed and you can return to 
     output = result.content
     print('output: ', output)
     
-    return {"plan": output}
+    result = output[output.find('<result>')+8:len(output)-9].replace("\n","")
+    plan = json.loads(result)
+    print('plan: ', plan)
+    
+    return {"plan": plan}
     
     #if isinstance(output.action, Response):
     #    return {"response": output.action.response}
