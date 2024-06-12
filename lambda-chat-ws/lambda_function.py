@@ -1220,13 +1220,13 @@ The updated plan should be in the following format:
     result = output.content
     print('result: ', result)
     
-    value = result[0].text
+    value = (result[0].text).replace("\n","")
     print('value: ', value)
     
     p1 = value.find('<plan>')+6
     p2 = value.find('</plan>')
     print(f"p1={p1}, p2={p2}, length={p2-p1+1}")
-    planstr = value[p1:p2-p1+1].replace("\n","")
+    planstr = value[p1:p2-p1+1]
     print('planstr: ', planstr)
     
     
