@@ -1033,6 +1033,7 @@ def run_bookstore_bot(connectionId, requestId, app, query):
 ####################### plan-and-execute agent #######################
 query = "작년에 프로야구 우승팀이 누구지?"
 
+from langchain_core.pydantic_v1 import Field
 
 import instructor
 from anthropic import AnthropicBedrock
