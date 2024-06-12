@@ -6,6 +6,12 @@ Plan and execute의 구성도는 아래와 같습니다. 상세한 내용은 [pl
 
 ![image](https://github.com/kyopark2014/adoptive-agent/assets/52392004/084cc0b6-6374-44b7-a63c-1af4494b63f4)
 
+## 요약
+
+- Cycle을 이용해 구성한 Workflow는 복잡한 문제를 해결할 수 있도록 해줍니다.
+- 사용하는 API로 해결이 안되는 Plan이 생성되면 루프를 돌다가 결과를 얻지 못하고 실패합니다. 어떤 API를 어떤식으로 사용할지 추가 study가 필요합니다.
+
+## 구성 방법
 
 아래와 같이 Plan을 Prompt를 이용해 구현합니다. pydantic을 이용하기 위해 ChatBedrock이 아닌 AnthropicBedrock과 instructor.from_anthropic()을 이용하였습니다.
 
