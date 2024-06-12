@@ -1112,9 +1112,13 @@ class Response(BaseModel):
 def replan_step(state: PlanExecute):
     print('state: ', state)
     
-    plan = state["plan"]
+    output = state["plan"]
+    result = output[output.find('<result>')+8:len(output)-9].replace("\n","")
+    plan = json.loads(result)
+    print('plan: ', plan)
+    
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
-    # print('plan_str: ', plan_str)
+    print('plan_str: ', plan_str)
     
     task = plan[0]
     task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."
