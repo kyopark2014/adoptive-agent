@@ -1043,14 +1043,18 @@ class User(BaseModel):
     age: int
 
 def extract_user_info(text):    
-    client = instructor.from_anthropic(
-        AnthropicBedrock(
-            aws_region="us-west-2",
-        )
+    #client = instructor.from_anthropic(
+    #    AnthropicBedrock(
+    #        aws_region="us-west-2",
+    #    )
+    #)
+    client = AnthropicBedrock(
+        aws_region="us-west-2",
     )
     
     resp = client.messages.create(
-        model="anthropic.claude-3-haiku-20240307-v1:0", # anthropic.claude-3-sonnet-20240229-v1:0
+        # model="anthropic.claude-3-haiku-20240307-v1:0", 
+        model="anthropic.claude-3-sonnet-20240229-v1:0",
         max_tokens=1024,
         messages=[
             {
@@ -1058,7 +1062,7 @@ def extract_user_info(text):
                 "content": "Extract Jason is 25 years old.",
             }
         ],
-        response_model=User,
+        # response_model=User,
     )
 
     print(resp)
