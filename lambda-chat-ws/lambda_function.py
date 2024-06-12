@@ -1160,7 +1160,10 @@ class Response(BaseModel):
 def replan_step(state: PlanExecute):
     print('state: ', state)
     
+    input = state['input']
+    past_steps = state['past_steps']
     plan = state["plan"]    
+    
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
     print('plan_str: ', plan_str)
     
@@ -1172,8 +1175,8 @@ def replan_step(state: PlanExecute):
             aws_region="us-west-2",
         )
     )
-    
-    system_message = """For the given objective, come up with a simple step by step plan. \
+        
+    system_message = f"""For the given objective, come up with a simple step by step plan. \
 This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
 The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
 
@@ -1192,56 +1195,14 @@ Update your plan accordingly. If no more steps are needed and you can return to 
     resp = client.messages.create(
         model="anthropic.claude-3-sonnet-20240229-v1:0", # model="anthropic.claude-3-haiku-20240307-v1:0"
         max_tokens=1024,
+        system = system_message,
         messages=[
-            {"role": "system", "content": system_message},
             {"role": "user","content": task_formatted}
         ],
         response_model=Plan,
     )    
+    print('resp: ', resp)
     # print("plan: ", resp.steps)
-    
-    system = (
-"""For the given objective, come up with a simple step by step plan. \
-This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
-The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
-
-Your objective was this:
-{input}
-
-Your original plan was this:
-{plan}
-
-You have currently done the follow steps:
-{past_steps}
-
-Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan.   
-"""
-)
-
-    human = "{input}"
-
-    prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
-
-    chain = prompt | chat    
-    result = chain.invoke({
-        "input": task_formatted,
-        "plan": plan_str,
-        "past_steps": state["past_steps"]
-    })
-    print('result: ', result)
-    output = result.content
-    print('output: ', output)
-    
-    result = output[output.find('<result>')+8:len(output)-9].replace("\n","")
-    plan = json.loads(result)
-    print('plan: ', plan)
-    
-    return {"plan": plan}
-    
-    #if isinstance(output.action, Response):
-    #    return {"response": output.action.response}
-    #else:
-    #    return {"plan": output.action.steps}
 
 """
 def replan_step(state: PlanExecute):
