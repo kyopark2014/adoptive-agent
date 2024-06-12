@@ -1066,26 +1066,23 @@ class PlanExecute(TypedDict):
     #agent_outcome: Union[AgentAction, AgentFinish, None]
     past_steps: Annotated[List[Tuple], operator.add]
     response: str
+    agent_outcome: Union[AgentAction, AgentFinish, None]
+    intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
 
 
 def plan_step(state: PlanExecute):
     print('state: ', state)
     
     result = create_plan(chat, state['input'])
-    result = json.loads(result.replace("\n",""))
-    print('result: ', result)
-    
-    plan = []
-    for item in result:
-        plan.append(item)
+    plan = json.loads(result.replace("\n",""))
     print('plan: ', plan)
     
     return {"plan": plan}
 
 prompt_template = get_react_prompt_template(agentLangMode)
-agent_executor = create_react_agent(chat, tools, prompt_template)
+agent_plan = create_react_agent(chat, tools, prompt_template)
 
-def execute_step(state: PlanExecute):
+def run_plan_agent(state: PlanExecute):
     print('state: ', state)
     
     plan = state["plan"]
@@ -1094,15 +1091,17 @@ def execute_step(state: PlanExecute):
     task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."    
     print('task_formatted: ', task_formatted)
     
-    agent_response = agent_executor.invoke(
+    agent_outcome = agent_plan.invoke(
         {"input": task_formatted}
     )
-    print('agent_response: ', agent_response)
-    output = agent_response.content
+    print('agent_outcome: ', agent_outcome)
     
-    return {
-        "past_steps": (task, output),
-    }
+    return {"agent_outcome": agent_outcome}
+    #output = agent_response.content
+    
+    #return {
+    #    "past_steps": (task, output),
+    #}
 
 from langchain_core.pydantic_v1 import BaseModel
 class Response(BaseModel):
@@ -1164,7 +1163,7 @@ def buildAgent():
     workflow = StateGraph(PlanExecute)
     
     workflow.add_node("planner", plan_step)
-    workflow.add_node("agent", execute_step)
+    workflow.add_node("agent", run_plan_agent)
     workflow.add_node("replan", replan_step)
     
     workflow.set_entry_point("planner")
