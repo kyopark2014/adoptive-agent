@@ -1197,7 +1197,7 @@ Update your plan accordingly. If no more steps are needed and you can return to 
         messages=[
             {"role": "user","content": message}
         ],
-        response_model=Act,
+        #response_model=Act,
     )    
     print('resp: ', resp)
     # print("plan: ", resp.steps)
