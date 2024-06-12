@@ -1067,40 +1067,27 @@ def generate_plans(text):
         ],
         response_model=Plan,
     )    
-    print(resp)
-
-    #system = (
-    #"""주어진 목표에 대해 간단한 단계별 계획을 세웁니다. 이 계획에는 개별 작업이 포함되어 있으며, 이를 올바르게 실행하면 정확한 답을 얻을 수 있습니다. \
-    #불필요한 단계는 추가하지 마십시오. 마지막 단계의 결과가 최종 답이 되어야 합니다. 각 단계에 필요한 모든 정보가 포함되어 있는지 확인하고 단계를 건너뛰지 마십시오. \
-    #결과만을 순서대로 아래 <example>과 같이 list로 정리하고, 번호는 붙이지 않습니다. 또한, 결과에 <result> tag를 붙여주세요. 
-    #""")
-    #human = "{input}"
-
-    #prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
-
-    #chain = prompt | client    
+    print("resp: ", resp)
+    print("plans: ", resp.steps)
     
-    #result = chain.invoke({
-    #    "input": text
-    #})
-    # output = result.content
-    #print('result: ', result)
-    
+    return resp.steps
+
 generate_plans(query)
 
 
 from typing import Union
 
 # Planning Step
+"""
 def create_plan(chat, text):
     system = (
-    """주어진 목표에 대해 간단한 단계별 계획을 세웁니다. 이 계획에는 개별 작업이 포함되어 있으며, 이를 올바르게 실행하면 정확한 답을 얻을 수 있습니다. \
+    "주어진 목표에 대해 간단한 단계별 계획을 세웁니다. 이 계획에는 개별 작업이 포함되어 있으며, 이를 올바르게 실행하면 정확한 답을 얻을 수 있습니다. \
     불필요한 단계는 추가하지 마십시오. 마지막 단계의 결과가 최종 답이 되어야 합니다. 각 단계에 필요한 모든 정보가 포함되어 있는지 확인하고 단계를 건너뛰지 마십시오. \
     결과만을 순서대로 아래 <example>과 같이 list로 정리하고, 번호는 붙이지 않습니다. 또한, 결과에 <result> tag를 붙여주세요. \
     <example>
     ["주요 언론사의 뉴스를 수집합니다.", "수집한 뉴스 기사들을 주제별로 분류합니다.", "각 주제별로 가장 많이 보도되고 화제가 된 뉴스를 선별합니다.", "최종적으로 선정된 소식을 정리합니다."]
     </example>
-    """)
+    ")
     human = "{input}"
 
     prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
@@ -1114,7 +1101,10 @@ def create_plan(chat, text):
     
     return output[output.find('<result>')+8:len(output)-9]
 
-
+result = create_plan(chat, state['input'])
+plan = json.loads(result.replace("\n",""))
+print('plan: ', plan)
+"""
 
 class PlanExecute(TypedDict):
     input: str
@@ -1129,8 +1119,7 @@ class PlanExecute(TypedDict):
 def plan_step(state: PlanExecute):
     print('state: ', state)
     
-    result = create_plan(chat, state['input'])
-    plan = json.loads(result.replace("\n",""))
+    plan = generate_plans(state['input'])    
     print('plan: ', plan)
     
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
