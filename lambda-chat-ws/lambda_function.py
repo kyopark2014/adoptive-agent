@@ -1039,46 +1039,15 @@ import instructor
 from anthropic import AnthropicBedrock
 from pydantic import BaseModel
 
-class User(BaseModel):
-    name: str
-    age: int
-
-def extract_user_info(text):    
-    client = instructor.from_anthropic(
-        AnthropicBedrock(
-            aws_region="us-west-2",
-        )
-    )
-    #client = AnthropicBedrock(
-    #    aws_region="us-west-2",
-    #)
-    
-    resp = client.messages.create(
-        # model="anthropic.claude-3-haiku-20240307-v1:0", 
-        model="anthropic.claude-3-sonnet-20240229-v1:0",
-        max_tokens=1024,
-        messages=[
-            {
-                "role": "user",
-                "content": "Extract Jason is 25 years old.",
-            }
-        ],
-        response_model=User,
-    )
-
-    print(resp)
-
-extract_user_info("Jason is 25 years old.")
-    
-
 class Plan(BaseModel):
     """Plan to follow in future"""
 
-    steps: List[str] = Field(
-        description="different steps to follow, should be in sorted order"
-    )
+    #steps: List[str] = Field(
+    #    description="different steps to follow, should be in sorted order"
+    #)
+    steps: List[str]
 
-def generate_plan(text):
+def generate_plans(text):
     client = instructor.from_anthropic(
         AnthropicBedrock(
             aws_region="us-west-2",
@@ -1090,18 +1059,15 @@ def generate_plan(text):
     The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps."""
     
     resp = client.messages.create(
-        # model="anthropic.claude-3-haiku-20240307-v1:0", # anthropic.claude-3-sonnet-20240229-v1:0
-        model="anthropic.claude-3-sonnet-20240229-v1:0",
+        model="anthropic.claude-3-sonnet-20240229-v1:0", # model="anthropic.claude-3-haiku-20240307-v1:0"
         max_tokens=1024,
         messages=[
             {"role": "system", "content": system_message},
             {"role": "user","content": text}
         ],
         response_model=Plan,
-    )
-    
+    )    
     print(resp)
-    
 
     #system = (
     #"""주어진 목표에 대해 간단한 단계별 계획을 세웁니다. 이 계획에는 개별 작업이 포함되어 있으며, 이를 올바르게 실행하면 정확한 답을 얻을 수 있습니다. \
@@ -1120,7 +1086,7 @@ def generate_plan(text):
     # output = result.content
     #print('result: ', result)
     
-generate_plan(query)
+generate_plans(query)
 
 
 from typing import Union
