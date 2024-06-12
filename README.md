@@ -79,3 +79,7 @@ if __name__ == "__main__":
 
     print(_class)
 ```
+
+```python
+pip install -qU instructor
+```
