@@ -1225,8 +1225,8 @@ The updated plan should be in the following format:
     
     p1 = value.find('<plan>')+6
     p2 = value.find('</plan>')
-    print(f"p1={p1}, p2={p2}, length={p2-p1+1}")
-    planstr = value[p1:p2-p1+1]
+    print(f"p1={p1}, p2={p2}, length={p2-p1+1+6}")
+    planstr = value[p1:p2-p1+1+6]
     print('planstr: ', planstr)
     
     
