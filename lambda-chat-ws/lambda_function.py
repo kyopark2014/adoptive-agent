@@ -1046,7 +1046,11 @@ class Plan(BaseModel):
     )
 
 def generate_plan(text):
-    client = instructor.from_anthropic(AnthropicBedrock())
+    client = instructor.from_anthropic(
+        AnthropicBedrock(
+            aws_region="us-west-2",
+        )
+    )
     
     system_message = """For the given objective, come up with a simple step by step plan. \
     This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
