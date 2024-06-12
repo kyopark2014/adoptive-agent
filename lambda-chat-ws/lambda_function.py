@@ -1054,25 +1054,28 @@ def generate_plans(text):
         )
     )
     
-    system_message = """For the given objective, come up with a simple step by step plan. \
+    if(mode=='eng'):
+        system_message = """For the given objective, come up with a simple step by step plan. \
     This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
     The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps."""
+    else:
+        system_message = """주어진 목표에 대해 간단한 단계별 계획을 세웁니다. 이 계획에는 개별 작업이 포함되어 있으며, 이를 올바르게 실행하면 정확한 답을 얻을 수 있습니다. \
+    불필요한 단계는 추가하지 마십시오. 마지막 단계의 결과가 최종 답이 되어야 합니다. 각 단계에 필요한 모든 정보가 포함되어 있는지 확인하고 단계를 건너뛰지 마십시오."""
     
     resp = client.messages.create(
         model="anthropic.claude-3-sonnet-20240229-v1:0", # model="anthropic.claude-3-haiku-20240307-v1:0"
         max_tokens=1024,
+        system = system_message,
         messages=[
-            {"role": "system", "content": system_message},
             {"role": "user","content": text}
         ],
         response_model=Plan,
     )    
-    print("resp: ", resp)
-    print("plans: ", resp.steps)
+    # print("plan: ", resp.steps)
     
     return resp.steps
 
-generate_plans(query)
+# generate_plans(query)
 
 
 from typing import Union
@@ -1164,6 +1167,39 @@ def replan_step(state: PlanExecute):
     task = plan[0]
     task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."
     
+    client = instructor.from_anthropic(
+        AnthropicBedrock(
+            aws_region="us-west-2",
+        )
+    )
+    
+    system_message = """For the given objective, come up with a simple step by step plan. \
+This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
+
+Your objective was this:
+{input}
+
+Your original plan was this:
+{plan}
+
+You have currently done the follow steps:
+{past_steps}
+
+Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan.   
+"""
+    
+    resp = client.messages.create(
+        model="anthropic.claude-3-sonnet-20240229-v1:0", # model="anthropic.claude-3-haiku-20240307-v1:0"
+        max_tokens=1024,
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user","content": task_formatted}
+        ],
+        response_model=Plan,
+    )    
+    # print("plan: ", resp.steps)
+    
     system = (
 """For the given objective, come up with a simple step by step plan. \
 This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
@@ -1178,11 +1214,7 @@ Your original plan was this:
 You have currently done the follow steps:
 {past_steps}
 
-Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan. \
-결과만을 순서대로 아래 <example>과 같이 list로 정리하고, 번호는 붙이지 않습니다. 또한, 결과에 <result> tag를 붙여주세요. \
-<example>
-["주요 언론사의 뉴스를 수집합니다.", "수집한 뉴스 기사들을 주제별로 분류합니다.", "각 주제별로 가장 많이 보도되고 화제가 된 뉴스를 선별합니다.", "최종적으로 선정된 소식을 정리합니다."]
-</example>    
+Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan.   
 """
 )
 
@@ -1210,6 +1242,65 @@ Update your plan accordingly. If no more steps are needed and you can return to 
     #    return {"response": output.action.response}
     #else:
     #    return {"plan": output.action.steps}
+
+"""
+def replan_step(state: PlanExecute):
+    print('state: ', state)
+    
+    plan = state["plan"]    
+    plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
+    print('plan_str: ', plan_str)
+    
+    task = plan[0]
+    task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."
+    
+    system = (
+"For the given objective, come up with a simple step by step plan. \
+This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
+
+Your objective was this:
+{input}
+
+Your original plan was this:
+{plan}
+
+You have currently done the follow steps:
+{past_steps}
+
+Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan. \
+결과만을 순서대로 아래 <example>과 같이 list로 정리하고, 번호는 붙이지 않습니다. 또한, 결과에 <result> tag를 붙여주세요. \
+<example>
+["주요 언론사의 뉴스를 수집합니다.", "수집한 뉴스 기사들을 주제별로 분류합니다.", "각 주제별로 가장 많이 보도되고 화제가 된 뉴스를 선별합니다.", "최종적으로 선정된 소식을 정리합니다."]
+</example>    
+"
+)
+
+    human = "{input}"
+
+    prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
+
+    chain = prompt | chat    
+    result = chain.invoke({
+        "input": task_formatted,
+        "plan": plan_str,
+        "past_steps": state["past_steps"]
+    })
+    print('result: ', result)
+    output = result.content
+    print('output: ', output)
+    
+    result = output[output.find('<result>')+8:len(output)-9].replace("\n","")
+    plan = json.loads(result)
+    print('plan: ', plan)
+    
+    return {"plan": plan}
+    
+    #if isinstance(output.action, Response):
+    #    return {"response": output.action.response}
+    #else:
+    #    return {"plan": output.action.steps}
+"""
 
 def should_end(state: PlanExecute) -> Literal["agent", "__end__"]:
     if "response" in state and state["response"]:
