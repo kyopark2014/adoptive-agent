@@ -1192,7 +1192,7 @@ def buildAgent():
         "replan",
         should_continue,
         {
-            "continue": "action",
+            "continue": "agent",
             "end": END,
         },
     )
