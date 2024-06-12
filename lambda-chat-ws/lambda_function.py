@@ -1033,8 +1033,58 @@ def run_bookstore_bot(connectionId, requestId, app, query):
 ####################### plan-and-execute agent #######################
 query = "작년에 프로야구 우승팀이 누구지?"
 
-from typing import Union
 
+import instructor
+from anthropic import AnthropicBedrock
+from langchain_core.pydantic_v1 import BaseModel, Field
+
+class Plan(BaseModel):
+    """Plan to follow in future"""
+
+    steps: List[str] = Field(
+        description="different steps to follow, should be in sorted order"
+    )
+
+def generate_plan(text):
+    client = instructor.from_anthropic(AnthropicBedrock())
+    
+    system_message = """For the given objective, come up with a simple step by step plan. \
+    This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
+    The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps."""
+    
+    resp = client.messages.create(
+        model="anthropic.claude-3-haiku-20240307-v1:0",
+        max_tokens=1024,
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user","content": text}
+        ],
+        response_model=Plan,
+    )
+    
+    print(resp)
+    
+    #system = (
+    #"""주어진 목표에 대해 간단한 단계별 계획을 세웁니다. 이 계획에는 개별 작업이 포함되어 있으며, 이를 올바르게 실행하면 정확한 답을 얻을 수 있습니다. \
+    #불필요한 단계는 추가하지 마십시오. 마지막 단계의 결과가 최종 답이 되어야 합니다. 각 단계에 필요한 모든 정보가 포함되어 있는지 확인하고 단계를 건너뛰지 마십시오. \
+    #결과만을 순서대로 아래 <example>과 같이 list로 정리하고, 번호는 붙이지 않습니다. 또한, 결과에 <result> tag를 붙여주세요. 
+    #""")
+    #human = "{input}"
+
+    #prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
+
+    #chain = prompt | client    
+    
+    #result = chain.invoke({
+    #    "input": text
+    #})
+    # output = result.content
+    #print('result: ', result)
+    
+generate_plan(query)
+
+
+from typing import Union
 
 # Planning Step
 def create_plan(chat, text):
@@ -1051,6 +1101,7 @@ def create_plan(chat, text):
     prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
 
     chain = prompt | chat    
+    
     result = chain.invoke({
         "input": text
     })
@@ -1069,7 +1120,7 @@ class PlanExecute(TypedDict):
     agent_outcome: Union[AgentAction, AgentFinish, None]
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
 
-
+    
 def plan_step(state: PlanExecute):
     print('state: ', state)
     
