@@ -1077,7 +1077,6 @@ def plan_step(state: PlanExecute):
     plan = json.loads(result.replace("\n",""))
     print('plan: ', plan)
     
-    plan = state["plan"]
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
     task = plan[0]
     task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."    
