@@ -1195,7 +1195,7 @@ Update your plan accordingly. If no more steps are needed and you can return to 
 """
     print('message: ', message)
     
-    resp = client.messages.create(
+    output = client.messages.create(
         model="anthropic.claude-3-sonnet-20240229-v1:0", # model="anthropic.claude-3-haiku-20240307-v1:0"
         max_tokens=1024,
         messages=[
@@ -1203,12 +1203,17 @@ Update your plan accordingly. If no more steps are needed and you can return to 
         ],
         response_model=Response,
     )    
-    print('resp: ', resp)
-    print("response: ", resp.content)
+    print('output: ', output)
+    print("response: ", output.response)
     
-    return {
-        "response": resp.content
-    }
+    #return {
+    #    "response": output.response
+    #}
+    
+    if isinstance(state["agent_outcome"], AgentFinish):
+        return {"response": output.response}
+    else:
+        return {"plan": state['plan']}
     
 """
 def replan_step(state: PlanExecute):
