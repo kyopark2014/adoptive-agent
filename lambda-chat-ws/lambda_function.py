@@ -1148,10 +1148,12 @@ Update your plan accordingly. If no more steps are needed and you can return to 
     output = result.content
     print('output: ', output)
     
-    if isinstance(output.action, Response):
-        return {"response": output.action.response}
-    else:
-        return {"plan": output.action.steps}
+    return {"agent_outcome": output}
+    
+    #if isinstance(output.action, Response):
+    #    return {"response": output.action.response}
+    #else:
+    #    return {"plan": output.action.steps}
 
 def should_end(state: PlanExecute) -> Literal["agent", "__end__"]:
     if "response" in state and state["response"]:
