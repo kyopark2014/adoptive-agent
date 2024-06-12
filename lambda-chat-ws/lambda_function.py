@@ -1210,10 +1210,10 @@ Update your plan accordingly. If no more steps are needed and you can return to 
     #    "response": output.response
     #}
     
-    if isinstance(state["agent_outcome"], AgentFinish):
-        return {"response": output.response}
-    else:
-        return {"plan": state['plan']}
+    #if isinstance(state["agent_outcome"], AgentFinish):
+    #    return {"response": output.response}
+    #else:
+    #    return {"plan": state['plan']}
     
 """
 def replan_step(state: PlanExecute):
