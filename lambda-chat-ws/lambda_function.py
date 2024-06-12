@@ -1036,7 +1036,7 @@ query = "작년에 프로야구 우승팀이 누구지?"
 
 import instructor
 from anthropic import AnthropicBedrock
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel
 
 class User(BaseModel):
     name: str
