@@ -1131,7 +1131,12 @@ Your original plan was this:
 You have currently done the follow steps:
 {past_steps}
 
-Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan."""
+Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan. \
+결과만을 순서대로 아래 <example>과 같이 list로 정리하고, 번호는 붙이지 않습니다. 또한, 결과에 <result> tag를 붙여주세요. \
+<example>
+["주요 언론사의 뉴스를 수집합니다.", "수집한 뉴스 기사들을 주제별로 분류합니다.", "각 주제별로 가장 많이 보도되고 화제가 된 뉴스를 선별합니다.", "최종적으로 선정된 소식을 정리합니다."]
+</example>    
+"""
 )
 
     human = "{input}"
@@ -1148,7 +1153,7 @@ Update your plan accordingly. If no more steps are needed and you can return to 
     output = result.content
     print('output: ', output)
     
-    return {"agent_outcome": output}
+    return {"plan": output}
     
     #if isinstance(output.action, Response):
     #    return {"response": output.action.response}
