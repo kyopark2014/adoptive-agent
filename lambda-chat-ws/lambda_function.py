@@ -1220,7 +1220,7 @@ The updated plan should be in the following format:
     result = output.content
     print('result: ', result)
     
-    value = result.text
+    value = result[0].text
     print('value: ', value)
     
     p1 = value.find('<plan>')
