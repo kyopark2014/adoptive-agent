@@ -1208,11 +1208,21 @@ The updated plan should be in the following format:
         # response_model=Act,
     )    
     print('output: ', output)
-    print("response: ", output.response)
+    
+    #print("response: ", output.response)
     # Since the 2024 Australian Open tennis tournament has not happened yet, 
     # the plan should be updated as follows:\n\nPlan:\n
     # ['If no information is available on the 2024 winner yet, respond that the tournament has not happened yet']\n\n
     # As the final step, I will respond that the tournament has not happened yet, since no information is available on the 2024 winner.
+    
+    #<plan>\n[1. Check the current date and compare it to when the 2024 Australian Open is scheduled to take place (around mid-to-late January)]\n</plan>
+    
+    p1 = output.find('<plan>')
+    p2 = output.find('</plan>')
+    result = output[p1+6:p2-p1-6].replace("\n","")
+    print('result: ', result)
+    
+    
     
     #return {
     #    "response": output.response
