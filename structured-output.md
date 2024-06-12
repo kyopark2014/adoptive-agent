@@ -2,11 +2,11 @@
 
 ## Issue: Structured output 미지원
 
-[chat models](https://python.langchain.com/v0.2/docs/integrations/chat/)와 같이 ChatBedrock의 경우에 Structured output을 미지원하고 있습니다. [관련한 ticket](https://github.com/langchain-ai/langchain/discussions/22701)도 있지만 현재 진행이되고 있지 않습니다.
+[chat models](https://python.langchain.com/v0.2/docs/integrations/chat/)와 같이 ChatBedrock의 경우에 Structured output을 미지원하고 있습니다. [관련한 ticket](https://github.com/langchain-ai/langchain/discussions/22701)도 있지만 현재 진행이되고 있지 않습니다. 따라서, with_structured_output을 현재 사용할 수 없습니다. (2024.6.12 기준)
 
 <img src="https://github.com/kyopark2014/adoptive-agent/assets/52392004/cac50362-93a8-40a3-a516-69aecc4f3611" width="700">
 
-따라서, with_structured_output을 사용할 수 없습니다.
+
 
 ## 해결을 위한 참고자료
 
