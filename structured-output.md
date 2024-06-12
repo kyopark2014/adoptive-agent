@@ -12,7 +12,7 @@ ChatBedrock의 경우에 현재 Structured Output을 지원하지 않고 있습�
 
 ## Anthropic Bedrock
 
-AnthropicBedrock은 [Amazon Bedrock API](https://docs.anthropic.com/en/api/claude-on-amazon-bedrock)을 이용하여, [Unlocking Structured Outputs with Amazon Bedrock: A Guide to Leveraging Instructor and Anthropic Claude 3](https://medium.com/@dminhk/unlocking-structured-outputs-with-amazon-bedrock-a-guide-to-leveraging-instructor-and-anthropic-abb76e4f6b20)을 참조하면 ChatBedrock에서 Structured output을 사용할 수 있습니다. 추가적인 코드는 [Langchain workaround for with_structured_output using ChatBedrock](https://stackoverflow.com/questions/78472764/langchain-workaround-for-with-structured-output-using-chatbedrock)을 참조합니다. 
+AnthropicBedrock은 [Amazon Bedrock API](https://docs.anthropic.com/en/api/claude-on-amazon-bedrock)을 이용하며, [Unlocking Structured Outputs with Amazon Bedrock: A Guide to Leveraging Instructor and Anthropic Claude 3](https://medium.com/@dminhk/unlocking-structured-outputs-with-amazon-bedrock-a-guide-to-leveraging-instructor-and-anthropic-abb76e4f6b20)을 참조하면 ChatBedrock에서 Structured output을 사용할 수 있습니다. 추가적인 코드는 [Langchain workaround for with_structured_output using ChatBedrock](https://stackoverflow.com/questions/78472764/langchain-workaround-for-with-structured-output-using-chatbedrock)을 참조합니다. 
 
 ### 구현 결과
 
