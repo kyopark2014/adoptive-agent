@@ -1071,7 +1071,13 @@ class PlanExecute(TypedDict):
 def plan_step(state: PlanExecute):
     print('state: ', state)
     
-    plan = create_plan(chat, state['input'])
+    result = create_plan(chat, state['input'])
+    result = json.loads(result.replace("\n",""))
+    print('result: ', result)
+    
+    plan = []
+    for item in result:
+        plan.append(item)
     print('plan: ', plan)
     
     return {"plan": plan}
