@@ -1077,23 +1077,24 @@ def plan_step(state: PlanExecute):
     plan = json.loads(result.replace("\n",""))
     print('plan: ', plan)
     
-    return {"plan": plan}
-
-prompt_template = get_react_prompt_template(agentLangMode)
-agent_plan = create_react_agent(chat, tools, prompt_template)
-
-def run_plan_agent(state: PlanExecute):
-    print('state: ', state)
-    
     plan = state["plan"]
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
     task = plan[0]
     task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."    
     print('task_formatted: ', task_formatted)
     
-    agent_outcome = agent_plan.invoke(
-        {"input": task_formatted}
-    )
+    return {
+        "input": task_formatted,
+        "plan": plan
+    }
+
+prompt_template = get_react_prompt_template(agentLangMode)
+agent_plan = create_react_agent(chat, tools, prompt_template)
+
+def run_agent_plan(state: PlanExecute):
+    print('state: ', state)
+    
+    agent_outcome = agent_plan.invoke(state)
     print('agent_outcome: ', agent_outcome)
     
     return {"agent_outcome": agent_outcome}
@@ -1163,7 +1164,7 @@ def buildAgent():
     workflow = StateGraph(PlanExecute)
     
     workflow.add_node("planner", plan_step)
-    workflow.add_node("agent", run_plan_agent)
+    workflow.add_node("agent", run_agent_plan)
     workflow.add_node("replan", replan_step)
     
     workflow.set_entry_point("planner")
