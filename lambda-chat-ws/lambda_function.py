@@ -1168,14 +1168,14 @@ def replan_step(state: PlanExecute):
     plan = state["plan"]    
     past_steps = state['past_steps']
     
-    #client = instructor.from_anthropic(
-    #    AnthropicBedrock(
-    #        aws_region="us-west-2",
-    #    )
-    #)
-    client = AnthropicBedrock(
+    client = instructor.from_anthropic(
+        AnthropicBedrock(
             aws_region="us-west-2",
         )
+    )
+    #client = AnthropicBedrock(
+    #        aws_region="us-west-2",
+    #    )
     
         
     message = f"""For the given objective, come up with a simple step by step plan. \
@@ -1201,11 +1201,15 @@ Update your plan accordingly. If no more steps are needed and you can return to 
         messages=[
             {"role": "user","content": message}
         ],
-        #response_model=Act,
+        response_model=Response,
     )    
     print('resp: ', resp)
-    # print("plan: ", resp.steps)
-
+    print("response: ", resp.content)
+    
+    return {
+        "response": resp.content
+    }
+    
 """
 def replan_step(state: PlanExecute):
     print('state: ', state)
