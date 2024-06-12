@@ -1038,6 +1038,7 @@ from langchain_core.pydantic_v1 import Field
 import instructor
 from anthropic import AnthropicBedrock
 from pydantic import BaseModel
+from typing import Union
 
 class Plan(BaseModel):
     """Plan to follow in future"""
@@ -1075,12 +1076,6 @@ def generate_plans(text):
     
     return resp.steps
 
-# generate_plans(query)
-
-
-from typing import Union
-
-# Planning Step
 """
 def create_plan(chat, text):
     system = (
@@ -1112,8 +1107,8 @@ print('plan: ', plan)
 class PlanExecute(TypedDict):
     input: str
     plan: list[str]
-    #agent_outcome: Union[AgentAction, AgentFinish, None]
     past_steps: Annotated[List[Tuple], operator.add]
+    
     response: str
     agent_outcome: Union[AgentAction, AgentFinish, None]
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
@@ -1122,7 +1117,7 @@ class PlanExecute(TypedDict):
 def plan_step(state: PlanExecute):
     print('state: ', state)
     
-    plan = generate_plans(state['input'])    
+    plan = generate_plans(state['input'])
     print('plan: ', plan)
     
     plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
@@ -1151,24 +1146,27 @@ def run_agent_plan(state: PlanExecute):
     #    "past_steps": (task, output),
     #}
 
-from langchain_core.pydantic_v1 import BaseModel
 class Response(BaseModel):
     """Response to user."""
 
     response: str
-            
+
+class Act(BaseModel):
+    """Action to perform."""
+
+    action: Union[Response, Plan]
+    
+    #action: Union[Response, Plan] = Field(
+    #    description="Action to perform. If you want to respond to user, use Response. "
+    #    "If you need to further use tools to get the answer, use Plan."
+    #)
+                
 def replan_step(state: PlanExecute):
     print('state: ', state)
     
     input = state['input']
-    past_steps = state['past_steps']
     plan = state["plan"]    
-    
-    plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
-    print('plan_str: ', plan_str)
-    
-    task = plan[0]
-    task_formatted = f"For the following plan: {plan_str}\n\nYou are tasked with executing step {1}, {task}."
+    past_steps = state['past_steps']
     
     client = instructor.from_anthropic(
         AnthropicBedrock(
@@ -1176,7 +1174,7 @@ def replan_step(state: PlanExecute):
         )
     )
         
-    system_message = f"""For the given objective, come up with a simple step by step plan. \
+    message = f"""For the given objective, come up with a simple step by step plan. \
 This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
 The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
 
@@ -1191,15 +1189,15 @@ You have currently done the follow steps:
 
 Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan.   
 """
+    print('message: ', message)
     
     resp = client.messages.create(
         model="anthropic.claude-3-sonnet-20240229-v1:0", # model="anthropic.claude-3-haiku-20240307-v1:0"
         max_tokens=1024,
-        system = system_message,
         messages=[
-            {"role": "user","content": task_formatted}
+            {"role": "user","content": message}
         ],
-        response_model=Plan,
+        response_model=Act,
     )    
     print('resp: ', resp)
     # print("plan: ", resp.steps)
