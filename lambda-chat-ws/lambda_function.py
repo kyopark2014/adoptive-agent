@@ -1184,10 +1184,19 @@ def buildAgent():
     workflow.add_edge("planner", "agent")
     workflow.add_edge("agent", "replan")
 
+    #workflow.add_conditional_edges(
+    #    "replan",
+    #    should_end,
+    #)
     workflow.add_conditional_edges(
         "replan",
-        should_end,
+        should_continue,
+        {
+            "continue": "action",
+            "end": END,
+        },
     )
+    
     return workflow.compile()    
 
 app_plan = buildAgent()
