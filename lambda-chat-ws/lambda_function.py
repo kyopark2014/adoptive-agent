@@ -1090,7 +1090,8 @@ def generate_plan(text):
     The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps."""
     
     resp = client.messages.create(
-        model="anthropic.claude-3-haiku-20240307-v1:0", # anthropic.claude-3-sonnet-20240229-v1:0
+        # model="anthropic.claude-3-haiku-20240307-v1:0", # anthropic.claude-3-sonnet-20240229-v1:0
+        model="anthropic.claude-3-sonnet-20240229-v1:0",
         max_tokens=1024,
         messages=[
             {"role": "system", "content": system_message},
@@ -1101,6 +1102,7 @@ def generate_plan(text):
     
     print(resp)
     
+
     #system = (
     #"""주어진 목표에 대해 간단한 단계별 계획을 세웁니다. 이 계획에는 개별 작업이 포함되어 있으며, 이를 올바르게 실행하면 정확한 답을 얻을 수 있습니다. \
     #불필요한 단계는 추가하지 마십시오. 마지막 단계의 결과가 최종 답이 되어야 합니다. 각 단계에 필요한 모든 정보가 포함되어 있는지 확인하고 단계를 건너뛰지 마십시오. \
@@ -1118,7 +1120,7 @@ def generate_plan(text):
     # output = result.content
     #print('result: ', result)
     
-# generate_plan(query)
+generate_plan(query)
 
 
 from typing import Union
