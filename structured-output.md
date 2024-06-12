@@ -82,5 +82,8 @@ if __name__ == "__main__":
 필요한 패키지는 아래와 같습니다. 
 
 ```python
-pip install -qU instructor
+pip install -qU instructor "anthropic[bedrock]"
 ```
+
+AnthropicBedrock은 [Amazon Bedrock API](https://docs.anthropic.com/en/api/claude-on-amazon-bedrock)을 참조합니다.
+
