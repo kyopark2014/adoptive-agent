@@ -1218,9 +1218,14 @@ The updated plan should be in the following format:
     #<plan>\n[1. Check the current date and compare it to when the 2024 Australian Open is scheduled to take place (around mid-to-late January)]\n</plan>
     
     result = output.content
-    p1 = result.find('<plan>')
-    p2 = result.find('</plan>')
-    planstr = result[p1+6:p2-p1-6].replace("\n","")
+    print('result: ', result)
+    
+    value = result.text
+    print('value: ', value)
+    
+    p1 = value.find('<plan>')
+    p2 = value.find('</plan>')
+    planstr = value[p1+6:p2-p1-6].replace("\n","")
     print('planstr: ', planstr)
     
     
