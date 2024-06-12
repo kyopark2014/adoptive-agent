@@ -1192,6 +1192,10 @@ You have currently done the follow steps:
 {past_steps}
 
 Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan.   
+The updated plan should be in the following format:
+<plan>
+[<step>, <step>, ...]
+</plan>
 """
     # print('message: ', message)
     
@@ -1205,6 +1209,10 @@ Update your plan accordingly. If no more steps are needed and you can return to 
     )    
     print('output: ', output)
     print("response: ", output.response)
+    # Since the 2024 Australian Open tennis tournament has not happened yet, 
+    # the plan should be updated as follows:\n\nPlan:\n
+    # ['If no information is available on the 2024 winner yet, respond that the tournament has not happened yet']\n\n
+    # As the final step, I will respond that the tournament has not happened yet, since no information is available on the 2024 winner.
     
     #return {
     #    "response": output.response
