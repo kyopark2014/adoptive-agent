@@ -1168,14 +1168,14 @@ def replan_step(state: PlanExecute):
     plan = state["plan"]    
     past_steps = state['past_steps']
     
-    client = instructor.from_anthropic(
-        AnthropicBedrock(
-            aws_region="us-west-2",
-        )
-    )
-    #client = AnthropicBedrock(
+    #client = instructor.from_anthropic(
+    #    AnthropicBedrock(
     #        aws_region="us-west-2",
     #    )
+    #)
+    client = AnthropicBedrock(
+            aws_region="us-west-2",
+        )
     
         
     message = f"""For the given objective, come up with a simple step by step plan. \
@@ -1193,7 +1193,7 @@ You have currently done the follow steps:
 
 Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do not return previously done steps as part of the plan.   
 """
-    print('message: ', message)
+    # print('message: ', message)
     
     output = client.messages.create(
         model="anthropic.claude-3-sonnet-20240229-v1:0", # model="anthropic.claude-3-haiku-20240307-v1:0"
@@ -1201,7 +1201,7 @@ Update your plan accordingly. If no more steps are needed and you can return to 
         messages=[
             {"role": "user","content": message}
         ],
-        response_model=Act,
+        # response_model=Act,
     )    
     print('output: ', output)
     print("response: ", output.response)
