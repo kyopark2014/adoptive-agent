@@ -1050,7 +1050,7 @@ def extract_user_info(text):
     )
     
     resp = client.messages.create(
-        model="anthropic.claude-instant-v1",
+        model="anthropic.claude-3-haiku-20240307-v1:0", # anthropic.claude-3-sonnet-20240229-v1:0
         max_tokens=1024,
         messages=[
             {
@@ -1085,7 +1085,7 @@ def generate_plan(text):
     The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps."""
     
     resp = client.messages.create(
-        model="anthropic.claude-3-haiku-20240307-v1:0",
+        model="anthropic.claude-3-haiku-20240307-v1:0", # anthropic.claude-3-sonnet-20240229-v1:0
         max_tokens=1024,
         messages=[
             {"role": "system", "content": system_message},
