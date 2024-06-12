@@ -1038,6 +1038,34 @@ import instructor
 from anthropic import AnthropicBedrock
 from langchain_core.pydantic_v1 import BaseModel, Field
 
+class User(BaseModel):
+    name: str
+    age: int
+
+def extract_user_info(text):    
+    client = instructor.from_anthropic(
+        AnthropicBedrock(
+            aws_region="us-west-2",
+        )
+    )
+    
+    resp = client.messages.create(
+        model="anthropic.claude-instant-v1",
+        max_tokens=1024,
+        messages=[
+            {
+                "role": "user",
+                "content": "Extract Jason is 25 years old.",
+            }
+        ],
+        response_model=User,
+    )
+
+    print(resp)
+
+extract_user_info("Jason is 25 years old.")
+    
+
 class Plan(BaseModel):
     """Plan to follow in future"""
 
