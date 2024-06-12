@@ -166,6 +166,23 @@ The updated plan should be in the following format:
         return {"plan": plan}
 ```
 
+새로운 plan은 아래와 같이 문장으로 제공됩니다.
+
+```text
+Since the 2024 Australian Open tennis tournament has not happened yet, 
+the plan should be updated as follows:\n\nPlan:\n
+['If no information is available on the 2024 winner yet, respond that the tournament has not happened yet']\n\n
+As the final step, I will respond that the tournament has not happened yet, since no information is available on the 2024 winner.
+```
+
+따라서, Prompt를 이용해 <plan></plan> 테그를 붙이고 포맷을 list 형태로 지정하였습니다. 프롬프트 이후로 생성된 결과는 아래와 같습니다. 
+
+```python
+<plan>\n["1. Check the current date and compare it to when the 2024 Australian Open is scheduled to take place (around mid-to-late January)"]\n</plan>
+```
+
+여기서 list만 꺼내기 위해 <plan></plan> tag를 없애고 "\n"을 제거한후 json.load()를 이용해 변환합니다.
+
 Graph에 대한 Workshop를 아래와 같이 지정합니다.
 
 ```python
