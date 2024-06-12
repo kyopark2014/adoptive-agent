@@ -79,7 +79,7 @@ def plan_step(state: PlanExecute):
     }
 ```
 
-Agent를 생성합니다.
+Single Task를 구행하는 ReAct Agent를 create_react_agent()을 이용해 생성합니다. run_agent_plan()에서는 PlanExecute Class형태로 데이터를 받아서, Agent로 실행합니다. Single task를 수행하기 위해 Agent안에서 thought-action-observation의 동작을 수행합니다.
 
 ```python
 prompt_template = get_react_prompt_template(agentLangMode)
