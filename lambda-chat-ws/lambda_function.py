@@ -937,7 +937,7 @@ def task_complete(state: AgentState):
     print('state: ', state)
     
     if isinstance(state["agent_outcome"], AgentFinish):
-        past_step = state['intermediate_steps'][0]
+        past_step = state['intermediate_steps'][0].AgentAction
         print(f"past_step: {past_step}")
         print(f"past task: {past_step.tool}")
         return "end"
