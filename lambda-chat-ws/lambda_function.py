@@ -886,13 +886,15 @@ agent_runnable = create_react_agent(chat, tools, prompt_template)
 
 def run_agent(state: AgentState):
     print('state: ', state)
+    
     agent_outcome = agent_runnable.invoke(state)
     
     config = ensure_config()  
     configuration = config.get("configurable", {})
-    userId = configuration.get("user_id", None)
-    print('userId: ', userId)
+    print('configuration: ', configuration)
     
+    userId = configuration.get("user_id", None)
+    print('userId: ', userId)    
     if not userId:
         raise ValueError("No userId configured.")
     
@@ -959,7 +961,7 @@ def run_langgraph_agent(connectionId, requestId, userId, app, query):
     inputs = {"input": query}    
     config = {
         "configurable": {
-            "userId": userId
+            "user_id": userId
         },
         "recursion_limit": 50
     }
