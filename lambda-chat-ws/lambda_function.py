@@ -494,28 +494,27 @@ def get_book_list(keyword: str) -> str:
     
     keyword = keyword.replace('\'','')
 
-    # answer = ""
-    output = []   
+    answer = ""
+    #output = []   
     url = f"https://search.kyobobook.co.kr/search?keyword={keyword}&gbCode=TOT&target=total"
     response = requests.get(url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
         prod_info = soup.find_all("a", attrs={"class": "prod_info"})
         
-        #if len(prod_info):
-        #    answer = "추천 도서는 아래와 같습니다.\n"
+        if len(prod_info):
+            answer = "추천 도서는 아래와 같습니다.\n"
          
-        output = []   
+        #output = []   
         for prod in prod_info[:5]:
-            # \n문자를 replace합니다.
             title = prod.text.strip().replace("\n", "")       
             link = prod.get("href")
-            #answer = answer + f"{title}, URL: {link}\n"
+            answer = answer + f"{title}, URL: {link}\n"
             
-            result = f"{title}, URL: {link}\n"
-            output.append(result)
+            #result = f"{title}, URL: {link}\n"
+            #output.append(result)
     
-    return output
+    return answer
     
 @tool
 def get_current_time(format: str=f"%Y-%m-%d %H:%M:%S")->str:
