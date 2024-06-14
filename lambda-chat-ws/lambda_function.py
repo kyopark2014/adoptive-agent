@@ -940,6 +940,10 @@ def execute_tools(state: AgentState):
         for book in output:
             bookinfo = bookinfo + book + '\n'
         print('bookinfo: ', bookinfo)
+        
+        response = input(prompt=f"[y/n] continue with: {agent_action}?")
+        if response == "n":
+            raise ValueError
     
         return {"intermediate_steps": [(agent_action, str(bookinfo))]}
     else:
