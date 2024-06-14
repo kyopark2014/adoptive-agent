@@ -501,14 +501,18 @@ def get_book_list(keyword: str) -> str:
         soup = BeautifulSoup(response.text, "html.parser")
         prod_info = soup.find_all("a", attrs={"class": "prod_info"})
         
-        if len(prod_info):
-            answer = "추천 도서는 아래와 같습니다.\n"
-            
+        #if len(prod_info):
+        #    answer = "추천 도서는 아래와 같습니다.\n"
+         
+        output = []   
         for prod in prod_info[:5]:
             # \n문자를 replace합니다.
             title = prod.text.strip().replace("\n", "")       
             link = prod.get("href")
-            answer = answer + f"{title}, URL: {link}\n"
+            #answer = answer + f"{title}, URL: {link}\n"
+            
+            result = f"{title}, URL: {link}\n"
+            output.append(result)
     
     return answer
     
@@ -934,14 +938,15 @@ def execute_tools(state: AgentState):
     return {"intermediate_steps": [(agent_action, str(output))]}
 
 def task_complete(state: AgentState):
-    print('state: ', state)
+    #print('state: ', state)
     
     if isinstance(state["agent_outcome"], AgentFinish):
         intermediate_steps = state["intermediate_steps"]
         for action, observation in intermediate_steps:
-            print(f"action: {action}")
-            print(f"observation: {observation}")            
+            #print(f"action: {action}")
             print(f"past task: {action.tool}")
+            print(f"observation: {observation}")
+            
         return "end"
     else:
         return "continue"
