@@ -937,9 +937,9 @@ def task_complete(state: AgentState):
     print('state: ', state)
     
     if isinstance(state["agent_outcome"], AgentFinish):
-        intermediate_steps = state['intermediate_steps']
-        print(f"intermediate_steps: {intermediate_steps}")
-        print(f"past task: {intermediate_steps[0].tool}")
+        past_step = state['intermediate_steps'][0]
+        print(f"past_step: {past_step}")
+        print(f"past task: {past_step.tool}")
         return "end"
     else:
         return "continue"
