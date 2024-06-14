@@ -341,7 +341,7 @@ def load_chatHistory(userId, allowTime, chat_memory):
 
     response = dynamodb_client.query(
         TableName=callLogTableName,
-        KeyConditionExpression='user_id = :userId AND request_time > :allowTime',
+        KeyConditionExpression='userId = :userId AND request_time > :allowTime',
         ExpressionAttributeValues={
             ':userId': {'S': userId},
             ':allowTime': {'S': allowTime}
@@ -881,6 +881,7 @@ class AgentState(TypedDict):
     agent_outcome: Union[AgentAction, AgentFinish, None]
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
     userId: str
+    tool_output: json
 
 chat = get_chat() 
 mode  = 'kor'
@@ -896,7 +897,7 @@ def run_agent(state: AgentState):
         config = ensure_config()  # update userId
         configuration = config.get("configurable", {})
         # print('configuration: ', configuration)    
-        userId = configuration.get("user_id", None)
+        userId = configuration.get("userId", None)
         print('userId: ', userId)    
         if not userId:
             raise ValueError("No userId configured.")
@@ -941,10 +942,6 @@ def execute_tools(state: AgentState):
             bookinfo = bookinfo + book + '\n'
         print('bookinfo: ', bookinfo)
         
-        response = input(prompt=f"[y/n] continue with: {agent_action}?")
-        if response == "n":
-            raise ValueError
-    
         return {"intermediate_steps": [(agent_action, str(bookinfo))]}
     else:
         return {"intermediate_steps": [(agent_action, str(output))]}
@@ -958,6 +955,25 @@ def task_complete(state: AgentState):
             #print(f"action: {action}")
             print(f"past task: {action.tool}")
             print(f"observation: {observation}")
+            
+            msg = observation + "\n\n구매 하시겠어요?"
+            
+            if action.tool == "get_book_list":            
+                config = ensure_config()  # update userId
+                configuration = config.get("configurable", {})
+                connectionId = configuration.get("connectionId")
+                requestId = configuration.get("requestId")
+                
+                result = {
+                    'request_id': requestId,
+                    'msg': msg,
+                    'status': 'completed'
+                }
+                sendMessage(connectionId, result)
+                                    
+            #response = input(prompt=f"[y/n] continue with: {observation}?")
+            #if response == "n":
+            #    raise ValueError
             
         return "end"
     else:
@@ -989,7 +1005,9 @@ def run_langgraph_agent(connectionId, requestId, userId, app, query):
     inputs = {"input": query}    
     config = {
         "configurable": {
-            "user_id": userId
+            "userId": userId,
+            "connectionId": connectionId,
+            "requestId": requestId
         },
         "recursion_limit": 50
     }
@@ -1017,7 +1035,7 @@ def start_bookstore_agent(state: BookstoreState):
         
     config = ensure_config()  
     configuration = config.get("configurable", {})
-    userId = configuration.get("user_id", None)
+    userId = configuration.get("userId", None)
     print('userId: ', userId)
     if not userId:
         raise ValueError("No userId configured.")
@@ -1059,7 +1077,7 @@ def run_bookstore_bot(connectionId, requestId, userId, app, query):
     thread_id = str(uuid.uuid4())
     config = {
         "configurable": {
-            "user_id": userId,
+            "userId": userId,
             "thread_id": thread_id,
         },
         "recursion_limit": 50
@@ -1670,7 +1688,7 @@ def load_chat_history(userId, allowTime):
 
     response = dynamodb_client.query(
         TableName=callLogTableName,
-        KeyConditionExpression='user_id = :userId AND request_time > :allowTime',
+        KeyConditionExpression='userId = :userId AND request_time > :allowTime',
         ExpressionAttributeValues={
             ':userId': {'S': userId},
             ':allowTime': {'S': allowTime}
@@ -1825,7 +1843,7 @@ def extract_text(chat, img_base64):
 def getResponse(connectionId, jsonBody):
     print('jsonBody: ', jsonBody)
     
-    userId  = jsonBody['user_id']
+    userId  = jsonBody['userId']
     print('userId: ', userId)
     requestId  = jsonBody['request_id']
     print('requestId: ', requestId)
@@ -2017,7 +2035,7 @@ def getResponse(connectionId, jsonBody):
         print('msg: ', msg)
 
         item = {
-            'user_id': {'S':userId},
+            'userId': {'S':userId},
             'request_id': {'S':requestId},
             'request_time': {'S':requestTime},
             'type': {'S':type},
