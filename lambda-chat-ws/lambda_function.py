@@ -889,20 +889,24 @@ def run_agent(state: AgentState):
     
     agent_outcome = agent_runnable.invoke(state)
     
-    config = ensure_config()  
-    configuration = config.get("configurable", {})
-    print('configuration: ', configuration)
-    
-    userId = configuration.get("user_id", None)
-    print('userId: ', userId)    
-    if not userId:
-        raise ValueError("No userId configured.")
-    
-    return {
-        "agent_outcome": agent_outcome,
-        "userId": userId
-    }
-
+    if not state['userId']:
+        config = ensure_config()  # update userId
+        configuration = config.get("configurable", {})
+        # print('configuration: ', configuration)    
+        userId = configuration.get("user_id", None)
+        print('userId: ', userId)    
+        if not userId:
+            raise ValueError("No userId configured.")
+        
+        return {
+            "agent_outcome": agent_outcome,
+            "userId": userId
+        }
+    else:
+        return {
+            "agent_outcome": agent_outcome
+        }
+        
 def execute_tools(state: AgentState):
     agent_action = state["agent_outcome"]
     # print(f"agent_action: {agent_action}")    
