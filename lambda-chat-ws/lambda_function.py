@@ -889,6 +889,12 @@ def run_agent(state: AgentState):
 
 def execute_tools(state: AgentState):
     agent_action = state["agent_outcome"]
+    print(f"agent_action: {agent_action}")
+    
+    if isinstance(agent_action, AgentAction):
+        print(f"Tool: {agent_action.tool}")
+        print(f"Executing tool: {agent_action.tool}")
+        
     #response = input(prompt=f"[y/n] continue with: {agent_action}?")
     #if response == "n":
     #    raise ValueError
@@ -908,7 +914,7 @@ def execute_tools(state: AgentState):
     output = tool_executor.invoke(agent_action, config)
     return {"intermediate_steps": [(agent_action, str(output))]}
 
-def should_continue(state: AgentState):
+def task_complete(state: AgentState):
     if isinstance(state["agent_outcome"], AgentFinish):
         return "end"
     else:
@@ -923,7 +929,7 @@ def build_agent():
     workflow.set_entry_point("agent")
     workflow.add_conditional_edges(
         "agent",
-        should_continue,
+        task_complete,
         {
             "continue": "action",
             "end": END,
@@ -986,7 +992,7 @@ def build_bookstore_agent():
     workflow.add_edge("entry", "agent")
     workflow.add_conditional_edges(
         "agent",
-        should_continue,
+        task_complete,
         {
             "continue": "action",
             "end": END,
@@ -997,7 +1003,7 @@ def build_bookstore_agent():
 
 app_bookstore = build_bookstore_agent()
 
-def run_bookstore_bot(connectionId, requestId, app, query):
+def run_bookstore_bot(connectionId, requestId, userId, app, query):
     isTyping(connectionId, requestId)
     
     inputs = {"input": query}    
@@ -1005,7 +1011,7 @@ def run_bookstore_bot(connectionId, requestId, app, query):
     thread_id = str(uuid.uuid4())
     config = {
         "configurable": {
-            "passenger_id": "3442 587242",
+            "user_id": userId,
             "thread_id": thread_id,
         },
         "recursion_limit": 50
@@ -1323,7 +1329,7 @@ def buildAgent():
     #)
     workflow.add_conditional_edges(
         "replan",
-        should_continue,
+        task_complete,
         {
             "continue": "agent",
             "end": END,
@@ -1847,7 +1853,7 @@ def getResponse(connectionId, jsonBody):
                 elif convType == 'langgraph-agent':
                     msg = run_langgraph_agent(connectionId, requestId, app, text)      
                 elif convType == 'bookstore-bot':
-                    msg = run_bookstore_bot(connectionId, requestId, app_bookstore, text)
+                    msg = run_bookstore_bot(connectionId, requestId, userId, app_bookstore, text)
                 #elif convType == 'langgraph-agent-chat':
                 #    msg = run_langgraph_agent_chat_using_revised_question(connectionId, requestId, chat, text)
                 elif convType == 'plan-and-execute':
