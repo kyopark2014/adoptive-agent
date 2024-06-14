@@ -877,6 +877,7 @@ class AgentState(TypedDict):
     chat_history: list[BaseMessage]
     agent_outcome: Union[AgentAction, AgentFinish, None]
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
+    userId: str
 
 chat = get_chat() 
 mode  = 'kor'
@@ -884,34 +885,46 @@ prompt_template = get_react_prompt_template(mode)
 agent_runnable = create_react_agent(chat, tools, prompt_template)
 
 def run_agent(state: AgentState):
+    print('state: ', state)
     agent_outcome = agent_runnable.invoke(state)
-    return {"agent_outcome": agent_outcome}
+    
+    config = ensure_config()  
+    configuration = config.get("configurable", {})
+    userId = configuration.get("user_id", None)
+    print('userId: ', userId)
+    
+    if not userId:
+        raise ValueError("No userId configured.")
+    
+    return {
+        "agent_outcome": agent_outcome,
+        "userId": userId
+    }
 
 def execute_tools(state: AgentState):
     agent_action = state["agent_outcome"]
-    print(f"agent_action: {agent_action}")
-    
-    if isinstance(agent_action, AgentAction):
-        print(f"Tool: {agent_action.tool}")
-        print(f"Executing tool: {agent_action.tool}")
-        
+    # print(f"agent_action: {agent_action}")    
+    print(f"tool: {agent_action.tool}")
+    print(f"tool_input: {agent_action.tool_input}")
+                
     #response = input(prompt=f"[y/n] continue with: {agent_action}?")
     #if response == "n":
     #    raise ValueError
-    
-    config = {
-        "configurable": {
-            "userId": "3442 587242",
-            # Checkpoints are accessed by thread_id
-            "thread_id": "1234",
-        }
-    }
-    
+        
     tools = [get_current_time, get_book_list, get_weather_info, search_by_tavily, search_by_opensearch]
     
     tool_executor = ToolExecutor(tools)
-
-    output = tool_executor.invoke(agent_action, config)
+    
+    #config = {
+    #    "configurable": {
+    #        "userId": "3442 587242",
+    #        # Checkpoints are accessed by thread_id
+    #        "thread_id": "1234",
+    #    }
+    #}
+    #output = tool_executor.invoke(agent_action, config)
+    
+    output = tool_executor.invoke(agent_action)
     return {"intermediate_steps": [(agent_action, str(output))]}
 
 def task_complete(state: AgentState):
@@ -940,11 +953,16 @@ def build_agent():
 
 app = build_agent()
     
-def run_langgraph_agent(connectionId, requestId, app, query):
+def run_langgraph_agent(connectionId, requestId, userId, app, query):
     isTyping(connectionId, requestId)
         
     inputs = {"input": query}    
-    config = {"recursion_limit": 50}
+    config = {
+        "configurable": {
+            "userId": userId
+        },
+        "recursion_limit": 50
+    }
     for output in app.stream(inputs, config=config):
         for key, value in output.items():
             print("---")
@@ -1851,7 +1869,7 @@ def getResponse(connectionId, jsonBody):
                 if convType == 'normal':      # normal
                     msg = general_conversation(connectionId, requestId, chat, text)                  
                 elif convType == 'langgraph-agent':
-                    msg = run_langgraph_agent(connectionId, requestId, app, text)      
+                    msg = run_langgraph_agent(connectionId, requestId, userId, app, text)      
                 elif convType == 'bookstore-bot':
                     msg = run_bookstore_bot(connectionId, requestId, userId, app_bookstore, text)
                 #elif convType == 'langgraph-agent-chat':
