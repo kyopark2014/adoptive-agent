@@ -938,7 +938,8 @@ def execute_tools(state: AgentState):
     if agent_action.tool == 'get_book_list':
         bookinfo = "추천 도서는 아래와 같습니다.\n"         
         for book in output:
-            bookinfo = bookinfo + book
+            bookinfo = bookinfo + book + '\n'
+        print('bookinfo: ', bookinfo)
     
         return {"intermediate_steps": [(agent_action, str(bookinfo))]}
     else:
