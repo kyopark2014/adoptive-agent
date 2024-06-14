@@ -969,10 +969,10 @@ def start_bookstore_agent(state: BookstoreState):
         
     config = ensure_config()  
     configuration = config.get("configurable", {})
-    passenger_id = configuration.get("passenger_id", None)
-    print('passenger_id: ', passenger_id)
-    if not passenger_id:
-        raise ValueError("No passenger ID configured.")
+    userId = configuration.get("user_id", None)
+    print('userId: ', userId)
+    if not userId:
+        raise ValueError("No userId configured.")
     
     input = state['input']
     print('input: ', input)
