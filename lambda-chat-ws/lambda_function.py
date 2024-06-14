@@ -934,6 +934,8 @@ def execute_tools(state: AgentState):
     return {"intermediate_steps": [(agent_action, str(output))]}
 
 def task_complete(state: AgentState):
+    print('state: ', state)
+    
     if isinstance(state["agent_outcome"], AgentFinish):
         return "end"
     else:
