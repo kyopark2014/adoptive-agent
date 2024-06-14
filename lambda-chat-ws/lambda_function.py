@@ -494,7 +494,8 @@ def get_book_list(keyword: str) -> str:
     
     keyword = keyword.replace('\'','')
 
-    answer = ""
+    # answer = ""
+    output = []   
     url = f"https://search.kyobobook.co.kr/search?keyword={keyword}&gbCode=TOT&target=total"
     response = requests.get(url)
     if response.status_code == 200:
@@ -514,7 +515,7 @@ def get_book_list(keyword: str) -> str:
             result = f"{title}, URL: {link}\n"
             output.append(result)
     
-    return answer
+    return output
     
 @tool
 def get_current_time(format: str=f"%Y-%m-%d %H:%M:%S")->str:
