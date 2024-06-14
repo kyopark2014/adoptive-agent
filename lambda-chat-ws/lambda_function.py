@@ -942,9 +942,9 @@ def task_complete(state: AgentState):
             print(f"action: {action}")
             print(f"observation: {observation}")
             
-        past_step = state['intermediate_steps'][0].AgentAction
+        past_step = state['intermediate_steps'][0]
         print(f"past_step: {past_step}")
-        print(f"past task: {past_step.tool}")
+        # print(f"past task: {past_step.tool}")
         return "end"
     else:
         return "continue"
