@@ -1006,8 +1006,8 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
     inputs = {"input": query}    
     config = {
         "configurable": {
-            "user_id": userId,
-            "thread_id": "1"
+            "thread_id": str(uuid.uuid4()),                
+            "user_id": userId            
         },
         "recursion_limit": 50
     }
@@ -1016,9 +1016,7 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
         for key, value in output.items():
             print("---")
             print(f"Node '{key}': {value}")
-            
-            
-            
+                        
             if 'agent_outcome' in value and isinstance(value['agent_outcome'], AgentFinish):
                 response = value['agent_outcome'].return_values
                 msg = readStreamMsg(connectionId, requestId, response['output'])
