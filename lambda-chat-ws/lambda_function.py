@@ -124,6 +124,7 @@ AI_PROMPT = "\n\nAssistant:"
 
 map_chain = dict() 
 map_task = dict() 
+map_app = dict()
 
 MSG_LENGTH = 100
 
@@ -975,37 +976,43 @@ def task_complete(state: AgentState):
     else:
         return "continue"
 
-def build_agent(memory_task):
-    workflow = StateGraph(AgentState)
+def get_agent(userId):
+    if userId in map_app:  
+        print('memory_app exist. reuse it!')            
+    else: 
+        print('memory_app does not exist. create new one!')                
+        memory_task = getMemoryTask(userId)
+        
+        workflow = StateGraph(AgentState)
 
-    workflow.add_node("agent", run_agent)
-    workflow.add_node("action", execute_tools)
+        workflow.add_node("agent", run_agent)
+        workflow.add_node("action", execute_tools)
 
-    workflow.set_entry_point("agent")
-    workflow.add_conditional_edges(
-        "agent",
-        task_complete,
-        {
-            "continue": "action",
-            "end": END,
-        },
-    )
-    workflow.add_edge("action", "agent")
-    #return workflow.compile(checkpointer=memory_task, interrupt_before=["action"])
-    app = workflow.compile(checkpointer=memory_task)
-    
-    return app
+        workflow.set_entry_point("agent")
+        workflow.add_conditional_edges(
+            "agent",
+            task_complete,
+            {
+                "continue": "action",
+                "end": END,
+            },
+        )
+        workflow.add_edge("action", "agent")
+        #app = workflow.compile(checkpointer=memory_task, interrupt_before=["action"])        
+        app = workflow.compile(checkpointer=memory_task)
+        map_app[userId] = app
+        
+    return map_app[userId]
     
 def run_langgraph_agent(connectionId, requestId, userId, query):
     isTyping(connectionId, requestId)
-    
-    memory_task = getMemoryTask(userId)
-    app = build_agent(memory_task)
+        
+    app = get_agent(userId)
     
     inputs = {"input": query}    
     config = {
         "configurable": {
-            "thread_id": str(uuid.uuid4()),                
+            "thread_id": "thread-book",                
             "user_id": userId            
         },
         "recursion_limit": 50
@@ -1020,9 +1027,6 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
                 response = value['agent_outcome'].return_values
                 msg = readStreamMsg(connectionId, requestId, response['output'])
             
-    current_state = app.get_state(config).values
-    print('current_state: ', current_state)
-                                        
     return msg
 
 ####################### Bookstore bot #######################
@@ -1931,6 +1935,12 @@ def getResponse(connectionId, jsonBody):
                     msg = general_conversation(connectionId, requestId, chat, text)                  
                 elif convType == 'langgraph-agent':
                     msg = run_langgraph_agent(connectionId, requestId, userId, text)      
+                    
+                    app = get_agent(userId)
+                    config = {"configurable": {"thread_id": "thread-book"}}
+                    current_state = app.get_state(config).values
+                    print('current_state: ', current_state)
+                    
                 elif convType == 'bookstore-bot':
                     msg = run_bookstore_bot(connectionId, requestId, userId, app_bookstore, text)
                 #elif convType == 'langgraph-agent-chat':
