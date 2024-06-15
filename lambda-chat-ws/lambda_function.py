@@ -991,7 +991,8 @@ def build_agent(memory_task):
         },
     )
     workflow.add_edge("action", "agent")
-    return workflow.compile(checkpointer=memory_task, interrupt_before=["action"])
+    #return workflow.compile(checkpointer=memory_task, interrupt_before=["action"])
+    return workflow.compile(checkpointer=memory_task)
     
 def run_langgraph_agent(connectionId, requestId, userId, query):
     isTyping(connectionId, requestId)
@@ -1008,6 +1009,7 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
         "recursion_limit": 50
     }
     for output in app.stream(inputs, config=config):
+        print('output: ', output)
         for key, value in output.items():
             print("---")
             print(f"Node '{key}': {value}")
