@@ -961,8 +961,8 @@ def task_complete(state: AgentState):
             if action.tool == "get_book_list":            
                 config = ensure_config()  # update userId
                 configuration = config.get("configurable", {})
-                connectionId = configuration.get("connectionId")
-                requestId = configuration.get("requestId")
+                connectionId = configuration.get("connection-id")
+                requestId = configuration.get("request-id")
                 
                 result = {
                     'request_id': requestId,
@@ -1005,9 +1005,9 @@ def run_langgraph_agent(connectionId, requestId, userId, app, query):
     inputs = {"input": query}    
     config = {
         "configurable": {
-            "userId": userId,
-            "connectionId": connectionId,
-            "requestId": requestId
+            "user_id": userId,
+            "connection-id": connectionId,
+            "request-id": requestId
         },
         "recursion_limit": 50
     }
