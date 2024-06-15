@@ -124,7 +124,6 @@ AI_PROMPT = "\n\nAssistant:"
 
 map_chain = dict() 
 map_task = dict() 
-memory_task: any
 
 MSG_LENGTH = 100
 
@@ -976,7 +975,7 @@ def task_complete(state: AgentState):
     else:
         return "continue"
 
-def build_agent():
+def build_agent(memory_task):
     workflow = StateGraph(AgentState)
 
     workflow.add_node("agent", run_agent)
@@ -993,18 +992,17 @@ def build_agent():
     )
     workflow.add_edge("action", "agent")
     return workflow.compile(checkpointer=memory_task)
-
-app = build_agent()
     
 def run_langgraph_agent(connectionId, requestId, userId, app, query):
     isTyping(connectionId, requestId)
+    
+    memory_task = getMemoryTask(userId)
+    app = build_agent(memory_task)
     
     inputs = {"input": query}    
     config = {
         "configurable": {
             "user_id": userId,
-            "connection_id": connectionId,
-            "connection_id": requestId,
             "thread_id": "1"
         },
         "recursion_limit": 50
@@ -1838,6 +1836,16 @@ def extract_text(chat, img_base64):
     
     return extracted_text
 
+def getMemoryTask(userId):
+    # create memory_task
+    if userId in map_task:  
+        print('memory_task exist. reuse it!')        
+        memory_task = map_task[userId]
+    else: 
+        print('memory_task does not exist. create new one!')                
+        memory_task = SqliteSaver.from_conn_string(":memory:")
+        map_task[userId] = memory_task
+
 def getResponse(connectionId, jsonBody):
     print('jsonBody: ', jsonBody)
     
@@ -1854,7 +1862,7 @@ def getResponse(connectionId, jsonBody):
     convType = jsonBody['convType']
     print('convType: ', convType)
     
-    global map_chain, memory_chain, map_task, memory_task
+    global map_chain, memory_chain, map_task
     
     # Multi-LLM
     profile = LLM_for_chat[selected_chat]
@@ -1877,15 +1885,6 @@ def getResponse(connectionId, jsonBody):
         allowTime = getAllowTime()
         load_chat_history(userId, allowTime)
         
-    # create memory_task
-    if userId in map_task:  
-        print('memory_task exist. reuse it!')        
-        memory_task = map_task[userId]
-    else: 
-        print('memory_task does not exist. create new one!')                
-        memory_task = SqliteSaver.from_conn_string(":memory:")
-        map_task[userId] = memory_task
-
     start = int(time.time())    
 
     msg = ""
