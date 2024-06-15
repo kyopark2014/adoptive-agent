@@ -124,6 +124,8 @@ AI_PROMPT = "\n\nAssistant:"
 
 map_chain = dict() 
 map_task = dict() 
+memory_task: any
+
 MSG_LENGTH = 100
 
 # Multi-LLM
@@ -963,8 +965,8 @@ def task_complete(state: AgentState):
             if action.tool == "get_book_list":            
                 config = ensure_config()  # update userId
                 
-                current_values = app.get_state(config).values
-                print('current_values: ', current_values)
+                current_state = app.get_state(config).values
+                print('current_state: ', current_state)
                                     
             #response = input(prompt=f"[y/n] continue with: {observation}?")
             #if response == "n":
