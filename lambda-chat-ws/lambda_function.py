@@ -1030,6 +1030,8 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
         },
         "recursion_limit": 50
     }
+    
+    msg = ""
     for output in app.stream(inputs, config=config):
         print('output: ', output)
         for key, value in output.items():
