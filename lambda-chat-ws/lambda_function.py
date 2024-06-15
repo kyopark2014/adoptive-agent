@@ -993,7 +993,6 @@ def build_agent(memory_task):
     workflow.add_edge("action", "agent")
     #return workflow.compile(checkpointer=memory_task, interrupt_before=["action"])
     app = workflow.compile(checkpointer=memory_task)
-    app = workflow.compile()
     
     return app
     
