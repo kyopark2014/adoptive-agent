@@ -42,6 +42,7 @@ from langchain_core.messages import BaseMessage
 from langgraph.prebuilt.tool_executor import ToolExecutor
 from langgraph.graph import END, StateGraph
 from langchain_core.runnables import ensure_config
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 s3 = boto3.client('s3')
 s3_bucket = os.environ.get('s3_bucket') # bucket name
@@ -122,6 +123,7 @@ HUMAN_PROMPT = "\n\nHuman:"
 AI_PROMPT = "\n\nAssistant:"
 
 map_chain = dict() 
+map_task = dict() 
 MSG_LENGTH = 100
 
 # Multi-LLM
@@ -961,8 +963,8 @@ def task_complete(state: AgentState):
             if action.tool == "get_book_list":            
                 config = ensure_config()  # update userId
                 configuration = config.get("configurable", {})
-                connectionId = configuration.get("connection-id")
-                requestId = configuration.get("request-id")
+                connectionId = configuration.get("connection_id")
+                requestId = configuration.get("connection_id")
                 
                 result = {
                     'request_id': requestId,
@@ -996,19 +998,20 @@ def build_agent():
         },
     )
     workflow.add_edge("action", "agent")
-    return workflow.compile()
-
-app = build_agent()
+    return workflow.compile(checkpointer=memory_task)
     
 def run_langgraph_agent(connectionId, requestId, userId, app, query):
     isTyping(connectionId, requestId)
+    
+    app = build_agent()
         
     inputs = {"input": query}    
     config = {
         "configurable": {
             "user_id": userId,
-            "connection-id": connectionId,
-            "request-id": requestId
+            "connection_id": connectionId,
+            "connection_id": requestId,
+            "thread_id": "1"
         },
         "recursion_limit": 50
     }
@@ -1857,7 +1860,7 @@ def getResponse(connectionId, jsonBody):
     convType = jsonBody['convType']
     print('convType: ', convType)
     
-    global map_chain, memory_chain
+    global map_chain, memory_chain, map_task, memory_task
     
     # Multi-LLM
     profile = LLM_for_chat[selected_chat]
@@ -1868,18 +1871,27 @@ def getResponse(connectionId, jsonBody):
     
     chat = get_chat()    
     
-    # create memory
+    # create memory_chain
     if userId in map_chain:  
         print('memory exist. reuse it!')        
         memory_chain = map_chain[userId]
     else: 
-        print('memory does not exist. create new one!')        
+        print('memory_chain does not exist. create new one!')        
         memory_chain = ConversationBufferWindowMemory(memory_key="chat_history", output_key='answer', return_messages=True, k=5)
         map_chain[userId] = memory_chain
 
         allowTime = getAllowTime()
         load_chat_history(userId, allowTime)
-    
+        
+    # create memory_task
+    if userId in map_task:  
+        print('memory_task exist. reuse it!')        
+        memory_task = map_task[userId]
+    else: 
+        print('memory_task does not exist. create new one!')                
+        memory_task = SqliteSaver.from_conn_string(":memory:")
+        map_task[userId] = memory_task
+
     start = int(time.time())    
 
     msg = ""
