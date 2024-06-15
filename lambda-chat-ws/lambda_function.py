@@ -1020,7 +1020,7 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
                 response = value['agent_outcome'].return_values
                 msg = readStreamMsg(connectionId, requestId, response['output'])
             
-    current_state = app.get_state(config)
+    current_state = app.get_state(config).values
     print('current_state: ', current_state)
                                         
     return msg
