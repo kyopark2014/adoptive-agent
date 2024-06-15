@@ -993,7 +993,7 @@ def build_agent(memory_task):
     workflow.add_edge("action", "agent")
     return workflow.compile(checkpointer=memory_task)
     
-def run_langgraph_agent(connectionId, requestId, userId, app, query):
+def run_langgraph_agent(connectionId, requestId, userId, query):
     isTyping(connectionId, requestId)
     
     memory_task = getMemoryTask(userId)
@@ -1923,7 +1923,7 @@ def getResponse(connectionId, jsonBody):
                 if convType == 'normal':      # normal
                     msg = general_conversation(connectionId, requestId, chat, text)                  
                 elif convType == 'langgraph-agent':
-                    msg = run_langgraph_agent(connectionId, requestId, userId, app, text)      
+                    msg = run_langgraph_agent(connectionId, requestId, userId, text)      
                 elif convType == 'bookstore-bot':
                     msg = run_bookstore_bot(connectionId, requestId, userId, app_bookstore, text)
                 #elif convType == 'langgraph-agent-chat':
