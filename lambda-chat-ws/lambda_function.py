@@ -1941,10 +1941,10 @@ def getResponse(connectionId, jsonBody):
                 elif convType == 'langgraph-agent':
                     msg = run_langgraph_agent(connectionId, requestId, userId, text)      
                     
-                    app = get_agent(userId)
-                    config = {"configurable": {"thread_id": "thread-book"}}
-                    current_state = app.get_state(config).values
-                    print('current_state: ', current_state)
+                    #app = get_agent(userId)
+                    #config = {"configurable": {"thread_id": "thread-book"}}
+                    #current_state = app.get_state(config).values
+                    #print('current_state: ', current_state)
                     
                 elif convType == 'bookstore-bot':
                     msg = run_bookstore_bot(connectionId, requestId, userId, app_bookstore, text)
