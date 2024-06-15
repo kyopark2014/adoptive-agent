@@ -969,6 +969,7 @@ def task_complete(state: AgentState):
                     'msg': msg,
                     'status': 'completed'
                 }
+                print('result: ', result)
                 sendMessage(connectionId, result)
                                     
             #response = input(prompt=f"[y/n] continue with: {observation}?")
