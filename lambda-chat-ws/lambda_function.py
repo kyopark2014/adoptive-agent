@@ -961,11 +961,11 @@ def task_complete(state: AgentState):
             
             #msg = observation + "\n\n구매 하시겠어요?"
             
-            if action.tool == "get_book_list":            
-                config = ensure_config()  # update userId
+            #if action.tool == "get_book_list":            
+            #    config = ensure_config()  # update userId
                 
-                current_state = app.get_state(config).values
-                print('current_state: ', current_state)
+            #    current_state = app.get_state(config).values
+            #    print('current_state: ', current_state)
                                     
             #response = input(prompt=f"[y/n] continue with: {observation}?")
             #if response == "n":
