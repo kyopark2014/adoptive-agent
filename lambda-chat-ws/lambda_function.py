@@ -999,12 +999,12 @@ def build_agent():
     )
     workflow.add_edge("action", "agent")
     return workflow.compile(checkpointer=memory_task)
+
+app = build_agent()
     
 def run_langgraph_agent(connectionId, requestId, userId, app, query):
     isTyping(connectionId, requestId)
     
-    app = build_agent()
-        
     inputs = {"input": query}    
     config = {
         "configurable": {
