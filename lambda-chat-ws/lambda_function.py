@@ -912,10 +912,12 @@ def run_agent(state: AgentState):
         config = ensure_config()  # update user_id
         configuration = config.get("configurable", {})
         # print('configuration: ', configuration)    
-        user_id = configuration.get("user_id", None)
-        print('user_id: ', user_id)    
-        if not user_id:
+        userId = configuration.get("user_id", None)
+        print('userId: ', userId)
+        if not userId:
             raise ValueError("No user_id configured.")
+    else:
+        userId = state['user_id']
             
     agent_runnable = create_react_agent(chat, tools, prompt_template)
     
@@ -923,7 +925,7 @@ def run_agent(state: AgentState):
     
     return {
         "agent_outcome": agent_outcome,
-        "user_id": user_id
+        "user_id": userId
     }
         
 def execute_tools(state: AgentState):
