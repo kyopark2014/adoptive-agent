@@ -958,21 +958,13 @@ def task_complete(state: AgentState):
             print(f"past task: {action.tool}")
             print(f"observation: {observation}")
             
-            msg = observation + "\n\n구매 하시겠어요?"
+            #msg = observation + "\n\n구매 하시겠어요?"
             
             if action.tool == "get_book_list":            
                 config = ensure_config()  # update userId
-                configuration = config.get("configurable", {})
-                connectionId = configuration.get("connection_id")
-                requestId = configuration.get("connection_id")
                 
-                result = {
-                    'request_id': requestId,
-                    'msg': msg,
-                    'status': 'completed'
-                }
-                print('result: ', result)
-                sendMessage(connectionId, result)
+                current_values = app.get_state(config).values
+                print('current_values: ', current_values)
                                     
             #response = input(prompt=f"[y/n] continue with: {observation}?")
             #if response == "n":
