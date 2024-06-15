@@ -1011,8 +1011,8 @@ def get_agent(userId):
             },
         )
         workflow.add_edge("action", "agent")
-        #app = workflow.compile(checkpointer=memory_task, interrupt_before=["action"])        
-        app = workflow.compile(checkpointer=memory_task)
+        app = workflow.compile(checkpointer=memory_task, interrupt_before=["action"])        
+        #app = workflow.compile(checkpointer=memory_task)
         map_app[userId] = app
         
     return map_app[userId]
