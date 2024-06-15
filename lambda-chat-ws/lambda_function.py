@@ -991,7 +991,7 @@ def build_agent(memory_task):
         },
     )
     workflow.add_edge("action", "agent")
-    return workflow.compile(checkpointer=memory_task)
+    return workflow.compile(checkpointer=memory_task, interrupt_before=["action"])
     
 def run_langgraph_agent(connectionId, requestId, userId, query):
     isTyping(connectionId, requestId)
