@@ -341,7 +341,7 @@ def load_chatHistory(userId, allowTime, chat_memory):
 
     response = dynamodb_client.query(
         TableName=callLogTableName,
-        KeyConditionExpression='userId = :userId AND request_time > :allowTime',
+        KeyConditionExpression='user_id = :userId AND request_time > :allowTime',
         ExpressionAttributeValues={
             ':userId': {'S': userId},
             ':allowTime': {'S': allowTime}
@@ -880,7 +880,7 @@ class AgentState(TypedDict):
     chat_history: list[BaseMessage]
     agent_outcome: Union[AgentAction, AgentFinish, None]
     intermediate_steps: Annotated[list[tuple[AgentAction, str]], operator.add]
-    userId: str
+    user_id: str
     tool_output: json
 
 chat = get_chat() 
@@ -893,18 +893,18 @@ def run_agent(state: AgentState):
     
     agent_outcome = agent_runnable.invoke(state)
     
-    if not state['userId']:
-        config = ensure_config()  # update userId
+    if not state['user_id']:
+        config = ensure_config()  # update user_id
         configuration = config.get("configurable", {})
         # print('configuration: ', configuration)    
-        userId = configuration.get("userId", None)
-        print('userId: ', userId)    
-        if not userId:
-            raise ValueError("No userId configured.")
+        user_id = configuration.get("user_id", None)
+        print('user_id: ', user_id)    
+        if not user_id:
+            raise ValueError("No user_id configured.")
         
         return {
             "agent_outcome": agent_outcome,
-            "userId": userId
+            "user_id": user_id
         }
     else:
         return {
@@ -927,7 +927,7 @@ def execute_tools(state: AgentState):
     
     #config = {
     #    "configurable": {
-    #        "userId": "3442 587242",
+    #        "user_id": "3442 587242",
     #        # Checkpoints are accessed by thread_id
     #        "thread_id": "1234",
     #    }
@@ -1035,7 +1035,7 @@ def start_bookstore_agent(state: BookstoreState):
         
     config = ensure_config()  
     configuration = config.get("configurable", {})
-    userId = configuration.get("userId", None)
+    userId = configuration.get("user_id", None)
     print('userId: ', userId)
     if not userId:
         raise ValueError("No userId configured.")
@@ -1077,7 +1077,7 @@ def run_bookstore_bot(connectionId, requestId, userId, app, query):
     thread_id = str(uuid.uuid4())
     config = {
         "configurable": {
-            "userId": userId,
+            "user_id": userId,
             "thread_id": thread_id,
         },
         "recursion_limit": 50
@@ -1688,7 +1688,7 @@ def load_chat_history(userId, allowTime):
 
     response = dynamodb_client.query(
         TableName=callLogTableName,
-        KeyConditionExpression='userId = :userId AND request_time > :allowTime',
+        KeyConditionExpression='user_id = :userId AND request_time > :allowTime',
         ExpressionAttributeValues={
             ':userId': {'S': userId},
             ':allowTime': {'S': allowTime}
@@ -2035,7 +2035,7 @@ def getResponse(connectionId, jsonBody):
         print('msg: ', msg)
 
         item = {
-            'userId': {'S':userId},
+            'user_id': {'S':userId},
             'request_id': {'S':requestId},
             'request_time': {'S':requestTime},
             'type': {'S':type},
