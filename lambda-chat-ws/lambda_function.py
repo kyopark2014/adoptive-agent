@@ -1014,12 +1014,14 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
             print("---")
             print(f"Node '{key}': {value}")
             
-            current_state = app.get_state(config).values
-            print('current_state: ', current_state)
+            
             
             if 'agent_outcome' in value and isinstance(value['agent_outcome'], AgentFinish):
                 response = value['agent_outcome'].return_values
                 msg = readStreamMsg(connectionId, requestId, response['output'])
+            
+    current_state = app.get_state(config)
+    print('current_state: ', current_state)
                                         
     return msg
 
