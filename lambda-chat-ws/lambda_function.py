@@ -792,8 +792,7 @@ def run_agent_react(connectionId, requestId, userId, chat, query):
      # create agent
     isTyping(connectionId, requestId)
     
-    memory_task = getMemoryTask(userId)
-    agent = create_react_agent(chat, tools, prompt_template, checkpointer=memory_task)
+    agent = create_react_agent(chat, tools, prompt_template)
     
     agent_executor = AgentExecutor(
         agent=agent, 
@@ -892,6 +891,7 @@ def getMemoryTask(userId):
         #memory_task = SqliteSaver.from_conn_string(":memory:")
         memory_task = AsyncSqliteSaver.from_conn_string(":memory:")
         map_task[userId] = memory_task    
+        
 ####################### LangGraph #######################
 class AgentState(TypedDict):
     input: str
@@ -917,8 +917,7 @@ def run_agent(state: AgentState):
         if not user_id:
             raise ValueError("No user_id configured.")
             
-    memory_task = getMemoryTask(state['user_id'])
-    agent_runnable = create_react_agent(chat, tools, prompt_template, checkpointer=memory_task)
+    agent_runnable = create_react_agent(chat, tools, prompt_template)
     
     agent_outcome = agent_runnable.invoke(state)
     
