@@ -1843,7 +1843,7 @@ def extract_text(chat, img_base64):
 def getResponse(connectionId, jsonBody):
     print('jsonBody: ', jsonBody)
     
-    userId  = jsonBody['userId']
+    userId  = jsonBody['user_id']
     print('userId: ', userId)
     requestId  = jsonBody['request_id']
     print('requestId: ', requestId)
