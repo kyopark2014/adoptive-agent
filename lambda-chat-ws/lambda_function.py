@@ -43,6 +43,7 @@ from langgraph.prebuilt.tool_executor import ToolExecutor
 from langgraph.graph import END, StateGraph
 from langchain_core.runnables import ensure_config
 from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.aiosqlite import AsyncSqliteSaver
 
 s3 = boto3.client('s3')
 s3_bucket = os.environ.get('s3_bucket') # bucket name
@@ -780,7 +781,7 @@ Question: {input}
 Thought:{agent_scratchpad}
 """)
              
-def run_agent_react(connectionId, requestId, chat, query):
+def run_agent_react(connectionId, requestId, userId, chat, query):
     prompt_template = get_react_prompt_template(agentLangMode)
     print('prompt_template: ', prompt_template)
     
@@ -790,7 +791,9 @@ def run_agent_react(connectionId, requestId, chat, query):
     
      # create agent
     isTyping(connectionId, requestId)
-    agent = create_react_agent(chat, tools, prompt_template)
+    
+    memory_task = getMemoryTask(userId)
+    agent = create_react_agent(chat, tools, prompt_template, checkpointer=memory_task)
     
     agent_executor = AgentExecutor(
         agent=agent, 
@@ -878,6 +881,17 @@ New input: {input}
 Thought:{agent_scratchpad}
 """)
     
+    
+def getMemoryTask(userId):
+    # create memory_task
+    if userId in map_task:  
+        print('memory_task exist. reuse it!')        
+        memory_task = map_task[userId]
+    else: 
+        print('memory_task does not exist. create new one!')                
+        #memory_task = SqliteSaver.from_conn_string(":memory:")
+        memory_task = AsyncSqliteSaver.from_conn_string(":memory:")
+        map_task[userId] = memory_task    
 ####################### LangGraph #######################
 class AgentState(TypedDict):
     input: str
@@ -890,12 +904,9 @@ class AgentState(TypedDict):
 chat = get_chat() 
 mode  = 'kor'
 prompt_template = get_react_prompt_template(mode)
-agent_runnable = create_react_agent(chat, tools, prompt_template)
 
 def run_agent(state: AgentState):
     print('state: ', state)
-    
-    agent_outcome = agent_runnable.invoke(state)
     
     if not state['user_id']:
         config = ensure_config()  # update user_id
@@ -905,15 +916,16 @@ def run_agent(state: AgentState):
         print('user_id: ', user_id)    
         if not user_id:
             raise ValueError("No user_id configured.")
-        
-        return {
-            "agent_outcome": agent_outcome,
-            "user_id": user_id
-        }
-    else:
-        return {
-            "agent_outcome": agent_outcome
-        }
+            
+    memory_task = getMemoryTask(state['user_id'])
+    agent_runnable = create_react_agent(chat, tools, prompt_template, checkpointer=memory_task)
+    
+    agent_outcome = agent_runnable.invoke(state)
+    
+    return {
+        "agent_outcome": agent_outcome,
+        "user_id": user_id
+    }
         
 def execute_tools(state: AgentState):
     agent_action = state["agent_outcome"]
@@ -1846,16 +1858,6 @@ def extract_text(chat, img_base64):
         raise Exception ("Not able to request to LLM")
     
     return extracted_text
-
-def getMemoryTask(userId):
-    # create memory_task
-    if userId in map_task:  
-        print('memory_task exist. reuse it!')        
-        memory_task = map_task[userId]
-    else: 
-        print('memory_task does not exist. create new one!')                
-        memory_task = SqliteSaver.from_conn_string(":memory:")
-        map_task[userId] = memory_task
 
 def getResponse(connectionId, jsonBody):
     print('jsonBody: ', jsonBody)
