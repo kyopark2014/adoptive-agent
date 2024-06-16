@@ -1044,6 +1044,11 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
                 response = value['agent_outcome'].return_values
                 msg = readStreamMsg(connectionId, requestId, response['output'])
     
+    config = {
+        "configurable": {
+            "thread_id": "thread-book"       
+        }
+    }
     current_state = app.get_state(config)
     print('current_state: ', current_state)
     #app.update_state(config, current_values)
