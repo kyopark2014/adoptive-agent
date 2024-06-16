@@ -1014,6 +1014,7 @@ def get_agent(userId):
         #app = workflow.compile(checkpointer=memory_task, interrupt_before=["action"])        
         #app = workflow.compile(checkpointer=memory_task, interrupt_after=["action"])        
         app = workflow.compile(checkpointer=memory_task)
+        app = workflow.compile()
         map_app[userId] = app
         
     return map_app[userId]
@@ -1032,11 +1033,6 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
         "recursion_limit": 50
     }
     
-    
-    #current_state = app.get_state(config)
-    #print('current_state: ', current_state)
-    #app.update_state(config, current_values)
-    
     msg = ""
     for output in app.stream(inputs, config=config):
         print('output: ', output)
@@ -1047,6 +1043,10 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
             if 'agent_outcome' in value and isinstance(value['agent_outcome'], AgentFinish):
                 response = value['agent_outcome'].return_values
                 msg = readStreamMsg(connectionId, requestId, response['output'])
+    
+    current_state = app.get_state(config)
+    print('current_state: ', current_state)
+    #app.update_state(config, current_values)
     
     return msg
 
