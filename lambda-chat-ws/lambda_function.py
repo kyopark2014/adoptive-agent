@@ -1033,8 +1033,8 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
     }
     
     
-    current_state = app.get_state(config)
-    print('current_state: ', current_state)
+    #current_state = app.get_state(config)
+    #print('current_state: ', current_state)
     #app.update_state(config, current_values)
     
     msg = ""
