@@ -888,8 +888,8 @@ def getMemoryTask(userId):
         memory_task = map_task[userId]
     else: 
         print('memory_task does not exist. create new one!')                
-        #memory_task = SqliteSaver.from_conn_string(":memory:")
-        memory_task = AsyncSqliteSaver.from_conn_string(":memory:")
+        memory_task = SqliteSaver.from_conn_string(":memory:")
+        #memory_task = AsyncSqliteSaver.from_conn_string(":memory:")
         map_task[userId] = memory_task    
         
 ####################### LangGraph #######################
@@ -1032,6 +1032,11 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
         "recursion_limit": 50
     }
     
+    
+    current_state = app.get_state(config)
+    print('current_state: ', current_state)
+    #app.update_state(config, current_values)
+    
     msg = ""
     for output in app.stream(inputs, config=config):
         print('output: ', output)
@@ -1042,7 +1047,7 @@ def run_langgraph_agent(connectionId, requestId, userId, query):
             if 'agent_outcome' in value and isinstance(value['agent_outcome'], AgentFinish):
                 response = value['agent_outcome'].return_values
                 msg = readStreamMsg(connectionId, requestId, response['output'])
-            
+    
     return msg
 
 ####################### Bookstore bot #######################
