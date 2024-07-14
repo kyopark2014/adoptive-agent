@@ -6,8 +6,95 @@
 
 ![image](https://github.com/user-attachments/assets/28ee7e86-e6cf-45e5-b47f-9da380d2ddce)
 
+## 사용법
 
+```python
+from botocore.config import Config
+from langchain_aws import ChatBedrock
+bedrock_region = 'us-east-1'
+modelId = "anthropic.claude-3-sonnet-20240229-v1:0"
+boto3_bedrock = boto3.client(
+    service_name='bedrock-runtime',
+    region_name=bedrock_region,
+    config=Config(
+        retries = {
+            'max_attempts': 30
+        }            
+    )
+)
 
+HUMAN_PROMPT = "\n\nHuman:"
+AI_PROMPT = "\n\nAssistant:"
+maxOutputTokens = 4096
+parameters = {
+    "max_tokens":maxOutputTokens,     
+    "temperature":0.1,
+    "top_k":250,
+    "top_p":0.9,
+    "stop_sequences": [HUMAN_PROMPT]
+}    
+chat = ChatBedrock(   
+    model_id=modelId,
+    client=boto3_bedrock, 
+    model_kwargs=parameters,
+)
+
+class AnswerWithJustification(BaseModel):
+    '''An answer to the user question along with justification for the answer.'''
+    answer: str
+    justification: str
+    
+structured_llm = chat.with_structured_output(AnswerWithJustification, include_raw=True)
+
+structured_llm.invoke("What weighs more a pound of bricks or a pound of feathers")
+```
+
+이때의 결과는 아래와 같습니다. 
+
+```java
+{
+   "raw":"AIMessage(content=""",
+   "additional_kwargs="{
+      "usage":{
+         "prompt_tokens":361,
+         "completion_tokens":156,
+         "total_tokens":517
+      },
+      "stop_reason":"tool_use",
+      "model_id":"anthropic.claude-3-sonnet-20240229-v1:0"
+   },
+   "response_metadata="{
+      "usage":{
+         "prompt_tokens":361,
+         "completion_tokens":156,
+         "total_tokens":517
+      },
+      "stop_reason":"tool_use",
+      "model_id":"anthropic.claude-3-sonnet-20240229-v1:0"
+   },
+   "id=""run-d8002024-600e-4962-a763-af6e785d87ed-0",
+   "tool_calls="[
+      {
+         "name":"AnswerWithJustification",
+         "args":{
+            "answer":"A pound of bricks and a pound of feathers weigh the same.",
+            "justification":"A pound is a unit of weight or mass, not volume. Since a pound of bricks and a pound of feathers both have the same mass (one pound), they must weigh the same amount. The fact that bricks are denser and take up less volume than feathers for the same weight is irrelevant - their weights are equal when the mass is the same. This is a classic example that illustrates the difference between weight and density."
+         },
+         "id":"toolu_bdrk_019AZDSDKrTHhJRBKLpkjmTU"
+      }
+   ],
+   "usage_metadata="{
+      "input_tokens":361,
+      "output_tokens":156,
+      "total_tokens":517
+   }")",
+   "parsed":"AnswerWithJustification(answer=""A pound of bricks and a pound of feathers weigh the same.",
+   "justification=""A pound is a unit of weight or mass, not volume. Since a pound of bricks and a pound of feathers both have the same mass (one pound), they must weigh the same amount. The fact that bricks are denser and take up less volume than feathers for the same weight is irrelevant - their weights are equal when the mass is the same. This is a classic example that illustrates the difference between weight and density."")",
+   "parsing_error":"None"
+}
+```
+
+# Previous 우회 방법
 
 ChatBedrock의 경우에 현재 Structured Output을 지원하지 않고 있습니다. 이를 Prompt를 이용해 우회했는데, 복잡할 뿐 아니라 결과에도 영향을 주어서, Structured Output을 구현한 블로그를 참조하여 우회하였습니다.
 
@@ -16,8 +103,6 @@ ChatBedrock의 경우에 현재 Structured Output을 지원하지 않고 있습�
 [chat models](https://python.langchain.com/v0.2/docs/integrations/chat/)와 같이 ChatBedrock의 경우에 Structured output을 미지원하고 있습니다. [관련한 ticket](https://github.com/langchain-ai/langchain/discussions/22701)도 있지만 현재 진행이되고 있지 않습니다. 따라서, with_structured_output을 현재 사용할 수 없습니다. (2024.6.12 기준)
 
 <img src="https://github.com/kyopark2014/adoptive-agent/assets/52392004/cac50362-93a8-40a3-a516-69aecc4f3611" width="700">
-
-
 
 ## Anthropic Bedrock
 
