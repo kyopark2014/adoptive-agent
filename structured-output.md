@@ -44,10 +44,23 @@ class User(BaseModel):
     age: int
     
 structured_llm = chat.with_structured_output(User, include_raw=True)
-structured_llm.invoke("Jason is 25 years old.")
+
+info = structured_llm.invoke("Jason is 25 years old.")
+
+user_info = info['parsed']
+
+print('name: ', user_info.name)
+print('age: ', user_info.age)
 ```
 
 이때의 결과는 아래와 같습니다. 
+
+```text
+name:  Jason
+age:  25
+```
+
+LLM의 parsing 결과는 아래와 같습니다. 
 
 ```java
 {
