@@ -1,4 +1,13 @@
-# Structured Output Issue
+# Structured Output Issue (해결됨)
+
+## Updae: structured output 지원 
+
+[관련 Ticket](https://github.com/langchain-ai/langchain/pull/23645)
+
+![image](https://github.com/user-attachments/assets/28ee7e86-e6cf-45e5-b47f-9da380d2ddce)
+
+
+
 
 ChatBedrock의 경우에 현재 Structured Output을 지원하지 않고 있습니다. 이를 Prompt를 이용해 우회했는데, 복잡할 뿐 아니라 결과에도 영향을 주어서, Structured Output을 구현한 블로그를 참조하여 우회하였습니다.
 
