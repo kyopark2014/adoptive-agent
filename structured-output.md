@@ -39,14 +39,12 @@ chat = ChatBedrock(
     model_kwargs=parameters,
 )
 
-class AnswerWithJustification(BaseModel):
-    '''An answer to the user question along with justification for the answer.'''
-    answer: str
-    justification: str
+class User(BaseModel):
+    name: str
+    age: int
     
-structured_llm = chat.with_structured_output(AnswerWithJustification, include_raw=True)
-
-structured_llm.invoke("What weighs more a pound of bricks or a pound of feathers")
+structured_llm = chat.with_structured_output(User, include_raw=True)
+structured_llm.invoke("Jason is 25 years old.")
 ```
 
 이때의 결과는 아래와 같습니다. 
@@ -56,40 +54,40 @@ structured_llm.invoke("What weighs more a pound of bricks or a pound of feathers
    "raw":"AIMessage(content=""",
    "additional_kwargs="{
       "usage":{
-         "prompt_tokens":361,
-         "completion_tokens":156,
-         "total_tokens":517
+         "prompt_tokens":322,
+         "completion_tokens":50,
+         "total_tokens":372
       },
       "stop_reason":"tool_use",
       "model_id":"anthropic.claude-3-sonnet-20240229-v1:0"
    },
    "response_metadata="{
       "usage":{
-         "prompt_tokens":361,
-         "completion_tokens":156,
-         "total_tokens":517
+         "prompt_tokens":322,
+         "completion_tokens":50,
+         "total_tokens":372
       },
       "stop_reason":"tool_use",
       "model_id":"anthropic.claude-3-sonnet-20240229-v1:0"
    },
-   "id=""run-d8002024-600e-4962-a763-af6e785d87ed-0",
+   "id=""run-94e916c0-db53-4bd7-aeca-eb30605981a6-0",
    "tool_calls="[
       {
-         "name":"AnswerWithJustification",
+         "name":"User",
          "args":{
-            "answer":"A pound of bricks and a pound of feathers weigh the same.",
-            "justification":"A pound is a unit of weight or mass, not volume. Since a pound of bricks and a pound of feathers both have the same mass (one pound), they must weigh the same amount. The fact that bricks are denser and take up less volume than feathers for the same weight is irrelevant - their weights are equal when the mass is the same. This is a classic example that illustrates the difference between weight and density."
+            "name":"Jason",
+            "age":25
          },
-         "id":"toolu_bdrk_019AZDSDKrTHhJRBKLpkjmTU"
+         "id":"toolu_bdrk_01RQkKNJefn6bogdDzQWHhrq"
       }
    ],
    "usage_metadata="{
-      "input_tokens":361,
-      "output_tokens":156,
-      "total_tokens":517
+      "input_tokens":322,
+      "output_tokens":50,
+      "total_tokens":372
    }")",
-   "parsed":"AnswerWithJustification(answer=""A pound of bricks and a pound of feathers weigh the same.",
-   "justification=""A pound is a unit of weight or mass, not volume. Since a pound of bricks and a pound of feathers both have the same mass (one pound), they must weigh the same amount. The fact that bricks are denser and take up less volume than feathers for the same weight is irrelevant - their weights are equal when the mass is the same. This is a classic example that illustrates the difference between weight and density."")",
+   "parsed":"User(name=""Jason",
+   age=25),
    "parsing_error":"None"
 }
 ```
